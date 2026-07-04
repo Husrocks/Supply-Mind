@@ -1,0 +1,101 @@
+# ============================================================
+# SupplyMind — .gitignore
+# ============================================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment & Secrets — NEVER COMMIT
+.env
+*.env
+secrets.json
+credentials.json
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ML Artifacts & Model Weights (too large for git)
+mlruns/
+models/tft/checkpoints/
+models/lgbm/checkpoints/
+models/lstm_ae/checkpoints/
+models/calibration/
+*.pkl
+*.joblib
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# Data — Raw & Processed (too large for git)
+data/raw/
+data/processed/
+data/synthetic/*.csv
+data/synthetic/*.parquet
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.next/
+
+# Docker
+.docker/
+
+# Misc
+*.tmp
+*.bak
+*.orig
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+
+# Lightning logs
+lightning_logs/
+
+# Scratch files
+scratch/
+scratch*.py
+

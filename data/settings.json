@@ -1,0 +1,8 @@
+{
+  "risk_high_threshold": 0.09,
+  "risk_critical_threshold": 0.11,
+  "stockout_warning_days": 14,
+  "autonomous_budget_usd": 85000.0,
+  "anomaly_reconstruction_percentile": 95,
+  "manager_email": "manager@yourcompany.com"
+}
