@@ -14,7 +14,7 @@ const ACCENT_STROKE: Record<RiskAccent, string> = {
   emerald: '#10b981',
   amber: '#f59e0b',
   rose: '#f43f5e',
-  indigo: '#6366f1',
+  indigo: '#06b6d4',
   cyan: '#22d3ee',
 };
 

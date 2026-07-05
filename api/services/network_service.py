@@ -121,6 +121,16 @@ class NetworkDashboardService:
             .groupby("supplier_id", as_index=False)
             .tail(1)
         )
+        
+        # Pre-cache the latest row per supplier for O(1) lookups in ContextBuilder
+        latest_rows_all = (
+            supplier_df.sort_values("week_num")
+            .groupby("supplier_id", as_index=False)
+            .last()
+        )
+        supplier_df.__dict__["_latest_rows_cache"] = {
+            row["supplier_id"]: row for _, row in latest_rows_all.iterrows()
+        }
         if "country" in latest_rows.columns:
             # Sort by country and regional_delay_factor descending
             latest_rows = latest_rows.sort_values(

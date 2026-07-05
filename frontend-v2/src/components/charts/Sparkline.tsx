@@ -11,7 +11,7 @@ interface SparklineProps {
 
 export const Sparkline = memo(function Sparkline({
   data,
-  color = '#6366f1',
+  color = '#06b6d4',
   width = 72,
   height = 24,
 }: SparklineProps) {

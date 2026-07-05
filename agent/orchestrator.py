@@ -483,6 +483,25 @@ def _get_orchestrator_data() -> dict[str, pd.DataFrame]:
     """Load processed data dynamically; reload on modification or check format fallbacks."""
     global _data_cache
     
+    # Check if we can reuse the fully processed dataframes in cache
+    supplier_mtime = 0.0
+    demand_mtime = 0.0
+    for ext in [".parquet", ".pkt", ".pkl", ".csv", ".json"]:
+        s_path = Path(settings.data_processed_dir) / f"supplier_train{ext}"
+        d_path = Path(settings.data_processed_dir) / f"demand_features{ext}"
+        if s_path.exists() and supplier_mtime == 0.0:
+            supplier_mtime = os.path.getmtime(s_path)
+        if d_path.exists() and demand_mtime == 0.0:
+            demand_mtime = os.path.getmtime(d_path)
+
+    if (
+        "supplier_df" in _data_cache 
+        and _last_loaded_mtimes.get("supplier_train") == supplier_mtime 
+        and "demand_df" in _data_cache 
+        and _last_loaded_mtimes.get("demand_features") == demand_mtime
+    ):
+        return _data_cache
+    
     # 1. Load supplier data
     supplier_df = _load_file_with_formats("supplier_train")
     if supplier_df is not None:

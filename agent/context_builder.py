@@ -364,9 +364,11 @@ class ContextBuilder:
         risk = risk_map.get(supplier_id)
         anomaly = anomaly_map.get(supplier_id)
 
-        # Get latest row for operational fields
-        sup_rows = supplier_df[supplier_df["supplier_id"] == supplier_id]
-        latest_row = sup_rows.sort_values("week_num").iloc[-1] if not sup_rows.empty else None
+        # Get latest row for operational fields (using pre-computed cache if available)
+        latest_row = supplier_df.__dict__.get("_latest_rows_cache", {}).get(supplier_id)
+        if latest_row is None:
+            sup_rows = supplier_df[supplier_df["supplier_id"] == supplier_id]
+            latest_row = sup_rows.sort_values("week_num").iloc[-1] if not sup_rows.empty else None
 
         # Extract SHAP drivers (convert from raw dict to ShapDriver)
         shap_drivers = []

@@ -75,7 +75,7 @@ export function NetworkDashboard() {
   }, [data]);
 
   const getNodeColor = useCallback((node: any) => {
-    if (node.isHub) return '#6366f1';
+    if (node.isHub) return '#06b6d4';
     return riskScoreColor(node.risk_score);
   }, []);
 
@@ -135,16 +135,11 @@ export function NetworkDashboard() {
           </div>
           
           <div className="relative z-10 p-8 lg:p-12 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-medium mb-6">
-              <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
-              Live Network Monitored
-            </div>
-            <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-4 tracking-tight leading-tight">
-              Command Center <br/> 
-              <span className="text-indigo-400 font-medium">Supply Chain Intelligence</span>
+            <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-3 tracking-tight leading-tight">
+              Command Center
             </h1>
-            <p className="text-slate-400 text-sm lg:text-base leading-relaxed mb-8 max-w-xl">
-              End-to-end visibility into global supplier networks. Powered by real-time ML inference and autonomous AI agents to predict risk and execute mitigation strategies before stockouts occur.
+            <p className="text-slate-400 text-sm lg:text-base leading-relaxed mb-6 max-w-xl">
+              Real-time risk prediction and autonomous supply chain intelligence.
             </p>
             <div className="flex items-center gap-4">
               <button className="btn-primary" onClick={() => document.getElementById('alert-center')?.scrollIntoView({ behavior: 'smooth' })}>
@@ -215,7 +210,7 @@ export function NetworkDashboard() {
             </div>
             <div className="absolute bottom-3 left-3 z-10 bg-slate-950/85 backdrop-blur-xs border border-hairline px-4 py-2 rounded-xl flex items-center gap-4 text-xs pointer-events-auto">
               <span className="text-muted text-[10px] uppercase font-bold mr-1">Node Legend:</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#6366f1]" /> Central Hub</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#06b6d4]" /> Central Hub</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#10b981]" /> Low Risk</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b]" /> Elevated Risk</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#f43f5e]" /> Critical Risk</span>

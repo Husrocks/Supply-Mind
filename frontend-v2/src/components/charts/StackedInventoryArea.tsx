@@ -5,7 +5,7 @@ import { useInView } from '../../hooks/useInView';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { GlassCard } from '../ui/GlassCard';
 
-const AREA_COLORS = ['#6366f1', '#22d3ee', '#10b981', '#f59e0b', '#f43f5e'];
+const AREA_COLORS = ['#06b6d4', '#22d3ee', '#10b981', '#f59e0b', '#f43f5e'];
 
 interface StackedInventoryAreaProps {
   skus: InventorySku[];

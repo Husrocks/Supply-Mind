@@ -43,9 +43,9 @@ export const DemandForecastChart = memo(function DemandForecastChart({ forecasts
               />
               <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} />
               <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 12 }} />
-              <Area type="monotone" dataKey="p95" stroke="none" fill="#6366f1" fillOpacity={0.15} isAnimationActive={!reduced} />
+              <Area type="monotone" dataKey="p95" stroke="none" fill="#06b6d4" fillOpacity={0.15} isAnimationActive={!reduced} />
               <Area type="monotone" dataKey="p05" stroke="none" fill="#020617" fillOpacity={1} isAnimationActive={!reduced} />
-              <Line type="monotone" dataKey="p50" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={!reduced} />
+              <Line type="monotone" dataKey="p50" stroke="#06b6d4" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={!reduced} />
               <Line type="monotone" dataKey="actual" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={!reduced} />
             </AreaChart>
           </ResponsiveContainer>

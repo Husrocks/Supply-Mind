@@ -118,10 +118,10 @@ export function InventoryHeatmap() {
                       <XAxis dataKey="date" stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 10 }} />
                       <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8', fontSize: 10 }} />
                       <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 12 }} />
-                      <Area type="monotone" dataKey="p95" fill="rgba(99,102,241,0.06)" stroke="none" isAnimationActive={!reduced} />
+                      <Area type="monotone" dataKey="p95" fill="rgba(6,182,212,0.06)" stroke="none" isAnimationActive={!reduced} />
                       <Area type="monotone" dataKey="p05" fill="#020617" stroke="none" isAnimationActive={!reduced} />
                       <Line type="monotone" dataKey="actual" stroke="#10b981" strokeWidth={2} dot={{ r: 2 }} isAnimationActive={!reduced} />
-                      <Line type="monotone" dataKey="p50" stroke="#6366f1" strokeDasharray="4 4" strokeWidth={2} dot={false} isAnimationActive={!reduced} />
+                      <Line type="monotone" dataKey="p50" stroke="#06b6d4" strokeDasharray="4 4" strokeWidth={2} dot={false} isAnimationActive={!reduced} />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </div>

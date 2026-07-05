@@ -131,7 +131,7 @@ export function ModelObservatory() {
                     <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#94a3b8' }} />
                     <YAxis tick={{ fontSize: 9, fill: '#94a3b8' }} domain={['dataMin', 'dataMax']} />
                     <Tooltip contentStyle={{ background: '#0f172a', borderRadius: 12 }} />
-                    <Line type="monotone" dataKey="wrmsse" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={!reduced} />
+                    <Line type="monotone" dataKey="wrmsse" stroke="#06b6d4" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={!reduced} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>

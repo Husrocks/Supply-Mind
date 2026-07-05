@@ -169,7 +169,7 @@ export function SupplierDetail() {
                     <XAxis dataKey="cycle" tick={{ fill: '#94a3b8', fontSize: 10 }} />
                     <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} domain={[0, 100]} unit="%" />
                     <RechartsTooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 12 }} />
-                    <Line type="monotone" dataKey="score" stroke="#6366f1" strokeWidth={2.5} dot={{ r: 4 }} isAnimationActive={!reduced} />
+                    <Line type="monotone" dataKey="score" stroke="#06b6d4" strokeWidth={2.5} dot={{ r: 4 }} isAnimationActive={!reduced} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (

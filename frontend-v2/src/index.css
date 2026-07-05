@@ -3,12 +3,12 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #6366f1;
+  --color-primary: #06b6d4;
   --color-cyan: #22d3ee;
   --color-emerald: #10b981;
   --color-amber: #f59e0b;
   --color-rose: #f43f5e;
-  --color-violet: #8b5cf6;
+  --color-violet: #0891b2;
 
   --color-canvas: #0a0a0b;
   --color-surface: rgba(255, 255, 255, 0.02);
@@ -18,9 +18,35 @@
   --color-body: #a1a1aa;
   --color-muted: #71717a;
 
-  --color-accent-indigo: #6366f1;
+  --color-accent-indigo: #06b6d4;
   --color-accent-cyan: #22d3ee;
   --color-accent-yellow: #f59e0b;
+
+  /* Override standard Tailwind indigo colors to vibrant cyan */
+  --color-indigo-50: #ecfeff;
+  --color-indigo-100: #cffafe;
+  --color-indigo-200: #a5f3fc;
+  --color-indigo-300: #67e8f9;
+  --color-indigo-400: #22d3ee;
+  --color-indigo-500: #06b6d4;
+  --color-indigo-600: #0891b2;
+  --color-indigo-700: #0e7490;
+  --color-indigo-800: #155e75;
+  --color-indigo-900: #164e63;
+  --color-indigo-950: #083344;
+
+  /* Override standard Tailwind purple colors to vibrant teal */
+  --color-purple-50: #f0fdfa;
+  --color-purple-100: #ccfbf1;
+  --color-purple-200: #99f6e4;
+  --color-purple-300: #5eead4;
+  --color-purple-400: #14b8a6;
+  --color-purple-500: #0d9488;
+  --color-purple-600: #0f766e;
+  --color-purple-700: #115e59;
+  --color-purple-800: #134e4a;
+  --color-purple-900: #115e59;
+  --color-purple-950: #042f2e;
 
   --font-sans: 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', 'Geist Mono', monospace;
@@ -61,7 +87,7 @@ body {
 .glass-card--emerald:hover { box-shadow: 0 8px 24px rgba(16, 185, 129, 0.12); }
 .glass-card--amber:hover { box-shadow: 0 8px 24px rgba(245, 158, 11, 0.12); }
 .glass-card--rose:hover { box-shadow: 0 8px 24px rgba(244, 63, 94, 0.12); }
-.glass-card--indigo:hover { box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12); }
+.glass-card--indigo:hover { box-shadow: 0 8px 24px rgba(6, 182, 212, 0.12); }
 .glass-card--cyan:hover { box-shadow: 0 8px 24px rgba(34, 211, 238, 0.12); }
 
 @media (prefers-reduced-motion: reduce) {

@@ -131,10 +131,10 @@ export function SkuDetail() {
                   <XAxis dataKey="date" tick={{ fill: '#94a3b8', fontSize: 10 }} minTickGap={28} />
                   <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} />
                   <RechartsTooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 12 }} />
-                  <Area type="monotone" dataKey="p95" fill="#6366f1" fillOpacity={0.12} stroke="none" isAnimationActive={!reduced} />
+                  <Area type="monotone" dataKey="p95" fill="#06b6d4" fillOpacity={0.12} stroke="none" isAnimationActive={!reduced} />
                   <Area type="monotone" dataKey="p05" fill="#020617" stroke="none" isAnimationActive={!reduced} />
                   <Line type="monotone" dataKey="actual" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3 }} isAnimationActive={!reduced} name="Actual demand" />
-                  <Line type="monotone" dataKey="p50" stroke="#6366f1" strokeDasharray="4 4" strokeWidth={2.5} dot={false} isAnimationActive={!reduced} name="P50 forecast" />
+                  <Line type="monotone" dataKey="p50" stroke="#06b6d4" strokeDasharray="4 4" strokeWidth={2.5} dot={false} isAnimationActive={!reduced} name="P50 forecast" />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
