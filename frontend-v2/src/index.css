@@ -1,58 +1,70 @@
-/* Dark glassmorphic design system — SupplyMind dashboard */
+/* Minimalist design system — SupplyMind dashboard */
 
 @import "tailwindcss";
 
+:root {
+  /* Light mode tokens */
+  --canvas: #f5f5f7;
+  --surface: #ffffff;
+  --surface-elevated: #f9f9fb;
+  --hairline: #e5e5e7;
+  --ink: #1d1d1f;
+  --body: #6e6e73;
+  --muted: #86868b;
+  --accent: #0066cc;
+  --accent-hover: #0071e3;
+  
+  --risk-low: #10b981;
+  --risk-medium: #f59e0b;
+  --risk-high: #f43f5e;
+}
+
+:root[data-theme="dark"] {
+  /* Dark mode tokens */
+  --canvas: #000000;
+  --surface: #0a0a0c;
+  --surface-elevated: #121214;
+  --hairline: #1c1c1e;
+  --ink: #ffffff;
+  --body: #a1a1a6;
+  --muted: #6e6e73;
+  --accent: #0071e3;
+  --accent-hover: #0088ff;
+}
+
 @theme {
-  --color-primary: #06b6d4;
-  --color-cyan: #22d3ee;
-  --color-emerald: #10b981;
-  --color-amber: #f59e0b;
-  --color-rose: #f43f5e;
-  --color-violet: #0891b2;
+  --color-primary: var(--accent);
+  --color-cyan: var(--accent);
+  --color-emerald: var(--risk-low);
+  --color-amber: var(--risk-medium);
+  --color-rose: var(--risk-high);
+  --color-violet: var(--accent-hover);
 
-  --color-canvas: #0a0a0b;
-  --color-surface: rgba(255, 255, 255, 0.02);
-  --color-surface-elevated: rgba(255, 255, 255, 0.04);
-  --color-hairline: rgba(255, 255, 255, 0.08);
-  --color-ink: #ffffff;
-  --color-body: #a1a1aa;
-  --color-muted: #71717a;
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-hairline: var(--hairline);
+  --color-ink: var(--ink);
+  --color-body: var(--body);
+  --color-muted: var(--muted);
 
-  --color-accent-indigo: #06b6d4;
-  --color-accent-cyan: #22d3ee;
-  --color-accent-yellow: #f59e0b;
+  --color-accent-indigo: var(--accent);
+  --color-accent-cyan: var(--accent);
+  --color-accent-yellow: var(--risk-medium);
 
-  /* Override standard Tailwind indigo colors to vibrant cyan */
-  --color-indigo-50: #ecfeff;
-  --color-indigo-100: #cffafe;
-  --color-indigo-200: #a5f3fc;
-  --color-indigo-300: #67e8f9;
-  --color-indigo-400: #22d3ee;
-  --color-indigo-500: #06b6d4;
-  --color-indigo-600: #0891b2;
-  --color-indigo-700: #0e7490;
-  --color-indigo-800: #155e75;
-  --color-indigo-900: #164e63;
-  --color-indigo-950: #083344;
+  --color-risk-low: var(--risk-low);
+  --color-risk-medium: var(--risk-medium);
+  --color-risk-high: var(--risk-high);
 
-  /* Override standard Tailwind purple colors to vibrant teal */
-  --color-purple-50: #f0fdfa;
-  --color-purple-100: #ccfbf1;
-  --color-purple-200: #99f6e4;
-  --color-purple-300: #5eead4;
-  --color-purple-400: #14b8a6;
-  --color-purple-500: #0d9488;
-  --color-purple-600: #0f766e;
-  --color-purple-700: #115e59;
-  --color-purple-800: #134e4a;
-  --color-purple-900: #115e59;
-  --color-purple-950: #042f2e;
+  /* Override standard Tailwind colors to use dynamic colors */
+  --color-slate-900: var(--surface);
+  --color-slate-950: var(--canvas);
 
   --font-sans: 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', 'Geist Mono', monospace;
 
-  --radius-xl: 16px;
-  --radius-2xl: 1rem;
+  --radius-xl: 8px;
+  --radius-2xl: 8px;
 }
 
 body {
@@ -67,28 +79,28 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Glass card */
+/* Flat card design - replacing glassmorphic look */
 .glass-card {
   background: var(--color-surface);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--color-hairline);
   border-radius: var(--radius-2xl);
   padding: 24px;
   contain: layout style paint;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
 .glass-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: var(--color-primary);
 }
 
-.glass-card--emerald:hover { box-shadow: 0 8px 24px rgba(16, 185, 129, 0.12); }
-.glass-card--amber:hover { box-shadow: 0 8px 24px rgba(245, 158, 11, 0.12); }
-.glass-card--rose:hover { box-shadow: 0 8px 24px rgba(244, 63, 94, 0.12); }
-.glass-card--indigo:hover { box-shadow: 0 8px 24px rgba(6, 182, 212, 0.12); }
-.glass-card--cyan:hover { box-shadow: 0 8px 24px rgba(34, 211, 238, 0.12); }
+/* Remove flashy color shadows on hover */
+.glass-card--emerald:hover,
+.glass-card--amber:hover,
+.glass-card--rose:hover,
+.glass-card--indigo:hover,
+.glass-card--cyan:hover {
+  box-shadow: none;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .glass-card { transition: none; }
@@ -105,6 +117,7 @@ body {
   50% { opacity: 0.45; }
 }
 
+/* Minimal flat primary button */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -112,20 +125,18 @@ body {
   gap: 8px;
   height: 40px;
   padding: 0 18px;
-  background: #ffffff;
-  color: #000000;
+  background: var(--color-ink);
+  color: var(--color-canvas);
   font-size: 13px;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 6px;
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #e4e4e7;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+  opacity: 0.9;
 }
 
 .btn-primary:active:not(:disabled) {
@@ -135,10 +146,9 @@ body {
 .btn-primary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
+/* Minimal flat secondary button */
 .btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -146,19 +156,19 @@ body {
   gap: 8px;
   height: 40px;
   padding: 0 18px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #e4e4e7;
+  background: transparent;
+  color: var(--color-ink);
   font-size: 13px;
   font-weight: 600;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  border: 1px solid var(--color-hairline);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--color-surface-elevated);
+  border-color: var(--color-muted);
 }
 
 .btn-secondary:active:not(:disabled) {
@@ -170,5 +180,10 @@ body {
   cursor: not-allowed;
 }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.4); border-radius: 9999px; }
+/* Smooth color scheme transitions globally */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb { background: var(--color-hairline); border-radius: 9999px; }

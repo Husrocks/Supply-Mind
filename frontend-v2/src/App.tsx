@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ViewSkeleton } from './components/ui/ViewSkeleton';
 import { usePrefersReducedMotion } from './hooks/usePrefersReducedMotion';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ThemeProvider } from './context/ThemeContext';
 
 const NetworkDashboard = lazy(() => import('./views/NetworkDashboard'));
 const OverrideConsole = lazy(() => import('./views/OverrideConsole'));
@@ -63,31 +64,33 @@ function AnimatedOutlet() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Toaster position="top-right" toastOptions={{
-            style: { background: 'rgba(15,23,42,0.92)', color: '#f1f5f9', border: '1px solid rgba(148,163,184,0.2)', borderRadius: '12px' },
-          }} />
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route element={<AnimatedOutlet />}>
-                <Route index element={<Lazy><NetworkDashboard /></Lazy>} />
-                <Route path="override" element={<Lazy><OverrideConsole /></Lazy>} />
-                <Route path="onboarding" element={<Lazy><SupplierOnboarding /></Lazy>} />
-                <Route path="audit" element={<Lazy><AuditLog /></Lazy>} />
-                <Route path="inventory" element={<Lazy><InventoryHeatmap /></Lazy>} />
-                <Route path="models" element={<Lazy><ModelObservatory /></Lazy>} />
-                <Route path="settings" element={<Lazy><Settings /></Lazy>} />
-                <Route path="supplier/:supplier_id" element={<Lazy><SupplierDetail /></Lazy>} />
-                <Route path="sku/:sku_id" element={<Lazy><SkuDetail /></Lazy>} />
-                <Route path="reports" element={<Lazy><Reports /></Lazy>} />
-                <Route path="*" element={<Lazy><NotFound /></Lazy>} />
+      <ThemeProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <Toaster position="top-right" toastOptions={{
+              style: { background: 'rgba(15,23,42,0.92)', color: '#f1f5f9', border: '1px solid rgba(148,163,184,0.2)', borderRadius: '12px' },
+            }} />
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                <Route element={<AnimatedOutlet />}>
+                  <Route index element={<Lazy><NetworkDashboard /></Lazy>} />
+                  <Route path="override" element={<Lazy><OverrideConsole /></Lazy>} />
+                  <Route path="onboarding" element={<Lazy><SupplierOnboarding /></Lazy>} />
+                  <Route path="audit" element={<Lazy><AuditLog /></Lazy>} />
+                  <Route path="inventory" element={<Lazy><InventoryHeatmap /></Lazy>} />
+                  <Route path="models" element={<Lazy><ModelObservatory /></Lazy>} />
+                  <Route path="settings" element={<Lazy><Settings /></Lazy>} />
+                  <Route path="supplier/:supplier_id" element={<Lazy><SupplierDetail /></Lazy>} />
+                  <Route path="sku/:sku_id" element={<Lazy><SkuDetail /></Lazy>} />
+                  <Route path="reports" element={<Lazy><Reports /></Lazy>} />
+                  <Route path="*" element={<Lazy><NotFound /></Lazy>} />
+                </Route>
               </Route>
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
