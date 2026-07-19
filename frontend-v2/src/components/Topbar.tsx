@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, User, Activity, Menu } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { LogOut, User, Activity, Menu, Sun, Moon } from 'lucide-react';
 
 interface TopbarProps {
   onToggleSidebar?: () => void;
@@ -8,6 +9,7 @@ interface TopbarProps {
 
 export function Topbar({ onToggleSidebar }: TopbarProps) {
   const { logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
   const title: Record<string, string> = {
@@ -48,6 +50,14 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
       </div>
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 border-l border-hairline pl-4">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            title="Toggle color theme"
+            className="p-2 rounded-full text-muted hover:text-ink transition-colors focus:ring-1 focus:ring-accent-indigo focus:outline-none"
+          >
+            {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+          </button>
           <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
             <User size={15} className="text-muted" />
           </div>
