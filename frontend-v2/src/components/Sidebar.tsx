@@ -21,12 +21,12 @@ export function Sidebar({ onClose }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-60 bg-slate-950/90 border-r border-hairline flex flex-col h-full shrink-0 backdrop-blur-md relative">
+    <aside className="w-60 bg-surface border-r border-hairline flex flex-col h-full shrink-0 relative">
       {/* Mobile Close Button */}
       <div className="absolute right-4 top-4 lg:hidden">
         <button 
           onClick={onClose} 
-          className="p-1.5 rounded-full bg-slate-900/80 text-muted hover:text-ink hover:bg-slate-800 transition-colors focus:ring-1 focus:ring-accent-indigo focus:outline-none"
+          className="p-1.5 rounded-full bg-surface-elevated text-muted hover:text-ink hover:bg-surface transition-colors focus:ring-1 focus:ring-accent-indigo focus:outline-none"
           title="Close Navigation"
         >
           <X size={16} />
@@ -51,8 +51,8 @@ export function Sidebar({ onClose }: SidebarProps) {
             end={item.href === '/'}
             onClick={onClose}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                isActive ? 'bg-slate-800/80 text-ink' : 'text-body hover:text-ink hover:bg-slate-800/40'
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive ? 'bg-surface-elevated text-ink border-l-2 border-accent-indigo' : 'text-body hover:text-ink hover:bg-surface-elevated/50'
               }`
             }
           >
