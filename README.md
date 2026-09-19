@@ -1,20 +1,37 @@
-# SupplyMind 🧠⛓️
-### Predictive Supply Chain Disruption Intelligence with Autonomous Mitigation Orchestration
+# 🧠 SupplyMind ⛓️
+
+**Predictive Supply Chain Disruption Intelligence with Autonomous Mitigation Orchestration**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
 ---
 
-## What Is This?
+## 📖 What is SupplyMind?
 
-SupplyMind is a graduate-level ML + Agentic AI platform that continuously monitors
-thousands of suppliers and SKUs, predicts disruptions 2–4 weeks ahead of impact,
-and autonomously executes mitigation actions (emergency POs, safety stock adjustments,
-manager escalations) — with full human oversight and audit trails.
+SupplyMind is a graduate-level ML and Agentic AI platform designed for the modern supply chain. It continuously monitors thousands of suppliers and SKUs, predicts potential disruptions 2–4 weeks ahead of impact, and autonomously executes mitigation actions—such as placing emergency POs, adjusting safety stock, or escalating to human managers—while maintaining a comprehensive audit trail.
+
+This system is built to balance autonomous operational efficiency with strict human oversight and accountability boundaries.
 
 ---
 
-## Architecture at a Glance
+## ✨ Key Features
 
-```
+- **Demand Forecasting:** Utilizes Temporal Fusion Transformers (TFT) to predict multi-horizon SKU demand.
+- **Supplier Risk Scoring:** Leverages LightGBM & SHAP to calculate the probability of disruptions.
+- **Anomaly Detection:** Employs LSTM Autoencoders to flag unusual lead times or supplier behavior.
+- **Autonomous Agentic Orchestration:** Operates across three distinct decision tiers based on financial thresholds and confidence scores.
+- **Explainability First:** Every automated action generates an Action Card detailing the exact "why" behind the decision (SHAP drivers, anomaly flags, confidence scores).
+
+---
+
+## 🏛 Architecture at a Glance
+
+The architecture connects raw data inputs to complex ML models, managed by a LangGraph-based agent orchestrator, and surfaced through a responsive React dashboard.
+
+```text
 DATA LAYER          →    ML MODELS           →    AGENT          →    DASHBOARD
 ─────────────────────────────────────────────────────────────────────────────────
 M5 Sales (Kaggle)        TFT (Demand)             Orchestrator        React UI
@@ -28,142 +45,78 @@ FRED / ACLED             ─────────────────    
 
 ---
 
-## Project Structure
+## 🚀 Quick Start
 
-```
-supplymind/
-├── data/
-│   ├── raw/                  ← Downloaded datasets (not in git)
-│   ├── processed/            ← Feature-engineered outputs
-│   └── synthetic/            ← Generated supplier data
-│
-├── models/
-│   ├── tft/                  ← Temporal Fusion Transformer
-│   ├── lgbm/                 ← LightGBM supplier risk scorer
-│   ├── lstm_ae/              ← LSTM Autoencoder anomaly detection
-│   └── calibration/          ← Isotonic regression calibrators
-│
-├── agent/
-│   ├── orchestrator.py       ← Main agent loop
-│   ├── context_builder.py    ← Risk context frame assembly
-│   ├── policy.py             ← Decision rules + tier logic
-│   ├── actions.py            ← Action types (PO, stock, escalation)
-│   ├── audit_logger.py       ← Full reasoning audit trail
-│   └── triggers.py           ← Schedule / Event / Threshold triggers
-│
-├── api/
-│   ├── main.py               ← FastAPI application entry point
-│   ├── routes/               ← API route handlers
-│   ├── schemas/              ← Pydantic request/response models
-│   └── services/             ← Business logic layer
-│
-├── simulation/
-│   └── supplier_sim.py       ← Synthetic supplier data generator
-│
-├── notebooks/                ← EDA and experimentation
-├── scripts/                  ← Utility scripts (download, train, etc.)
-├── tests/                    ← Unit & integration tests
-├── frontend/                 ← React + TypeScript dashboard
-└── docs/                     ← Architecture diagrams, API docs
-```
+### 1. Clone & Set Up Environment
 
----
-
-## Quick Start
-
-### 1. Clone and set up environment
 ```bash
 git clone https://github.com/your-org/supplymind.git
 cd supplymind
 
-# Create virtual environment
+# Create and activate virtual environment
 python -m venv .venv
-.venv\Scripts\activate          # Windows
-# source .venv/bin/activate     # Linux/Mac
+# On Windows:
+.venv\Scripts\activate
+# On Linux/Mac:
+source .venv/bin/activate
 
-# Install dependencies
+# Install required dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Configure environment
+### 2. Configuration
+
+Copy the example environment file and fill in your API keys and credentials:
 ```bash
-copy .env.example .env
-# Edit .env with your API keys and database credentials
+cp .env.example .env
 ```
 
-### 3. Download datasets
+### 3. Prepare the Data
+
+Set your Kaggle credentials in the `.env` file first, then run:
+
 ```bash
-# Set Kaggle credentials in .env first
+# Download Kaggle datasets
 python scripts/download_datasets.py
-```
 
-### 4. Generate synthetic supplier data
-```bash
+# Generate synthetic supplier data for testing
 python simulation/supplier_sim.py --suppliers 1200 --weeks 104 --seed 42
 ```
 
-### 5. Run API server
+### 4. Run the Application
+
 ```bash
+# Start the API server
 uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 6. Run smoke test
+### 5. Verify the Setup
+
 ```bash
+# Run the built-in smoke test
 python scripts/smoke_test.py
 ```
 
 ---
 
-## ML Models
+## 📚 Documentation & Guides
 
-| Model | Task | Algorithm | Primary Metric |
-|-------|------|-----------|----------------|
-| Demand Forecaster | Multi-horizon SKU demand | Temporal Fusion Transformer | WRMSSE |
-| Supplier Risk Scorer | Binary disruption prediction | LightGBM + SHAP | PR-AUC |
-| Anomaly Detector | Unsupervised lead time anomaly | LSTM Autoencoder | F1 @ threshold |
+For more deep-dive information about how SupplyMind works under the hood, refer to these documents:
 
----
-
-## Agent Decision Tiers
-
-| Tier | Condition | Agent Action |
-|------|-----------|-------------|
-| **Tier 1 — Autonomous** | Cost ≤ $85k + risk ≥ 0.75 + reversible | Execute + notify |
-| **Tier 2 — Recommend** | Cost > $85k OR new supplier | Prepare card, await approval |
-| **Tier 3 — Escalate** | Cascade failure OR low confidence | Surface context, defer to human |
+- [How This System Works](HOW_THIS_SYSTEM_WORKS.md): A plain-English explanation of the data, the AI agent's logic, and what is automated vs. manual.
+- [Verify It Works](VERIFY_IT_WORKS.md): Detailed verification testing logic.
+- [Design Guide](Design.md): UI/UX guidelines and styling tokens.
 
 ---
 
-## Datasets Used
+## 🤝 Contributing
 
-| Dataset | Source | Purpose |
-|---------|--------|---------|
-| M5 Forecasting | Kaggle | Demand forecasting (TFT) |
-| DataCo Smart Supply Chain | Kaggle | Supplier feature engineering |
-| Supply Chain Analysis (Fashion) | Kaggle | Defect/lead time features |
-| USAID Shipment Data | Kaggle/USAID | Delivery label ground truth |
-| Synthetic Supplier Dataset | Generated | LightGBM + LSTM AE training |
-| FRED Economic Data | fredapi | Macro risk signals |
+We welcome contributions from the community—whether it's improving the ML models, enhancing the UI, fixing bugs, or writing documentation!
+
+Please read our [Contributing Guidelines](CONTRIBUTING.md) to understand the workflow, from setting up your development environment to submitting a Pull Request.
 
 ---
 
-## Tech Stack
+## 📜 License
 
-| Layer | Technology |
-|-------|-----------|
-| ML Framework | PyTorch, pytorch-forecasting, LightGBM |
-| Experiment Tracking | MLflow |
-| Agent Framework | LangGraph + APScheduler + Kafka |
-| Backend API | FastAPI + PostgreSQL + Redis |
-| Frontend | React + TypeScript + D3.js + Recharts |
-| Deployment | Docker Compose |
-
----
-
-## Academic Context
-
-- **Demand forecasting:** Lim et al. (2020) — Temporal Fusion Transformers (NeurIPS)
-- **Explainability:** Lundberg & Lee (2017) — SHAP (NeurIPS)
-- **Tabular ML:** Shwartz-Ziv & Armon (2022) — Deep Learning vs. Gradient Boosting
-- **Calibration:** Guo et al. (2017) — On Calibration of Modern Neural Networks
-- **Dataset:** Makridakis et al. (2022) — M5 accuracy competition
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
