@@ -113,10 +113,45 @@ def cache_result(ttl_seconds: int = 3600, prefix: str = "supplymind:") -> Callab
         @functools.wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Construct distinct keys from function name and parameter strings
-            # Exclude self or cls instances
-            func_args = [str(arg) for arg in args[1:]] if args else []
-            func_kwargs = [f"{k}={v}" for k, v in sorted(kwargs.items())]
-            key_body = ":".join(func_args + func_kwargs)
+            # Exclude self, cls, and DB sessions / non-serializable objects
+            import inspect
+
+            _SKIP_TYPES = ("AsyncSession", "Session", "Connection", "Engine", "AsyncEngine", "Request", "Response")
+
+            def _is_cacheable(v: Any) -> bool:
+                if v is None:
+                    return True
+                if isinstance(v, (str, int, float, bool)):
+                    return True
+                if hasattr(v, "__class__") and any(st in v.__class__.__name__ for st in _SKIP_TYPES):
+                    return False
+                try:
+                    json.dumps(v)
+                    return True
+                except (TypeError, ValueError):
+                    return False
+
+            try:
+                sig = inspect.signature(func)
+                bound = sig.bind_partial(*args, **kwargs)
+                bound.apply_defaults()
+                key_parts = [
+                    f"{k}={v}"
+                    for k, v in sorted(bound.arguments.items())
+                    if k not in ("self", "cls") and _is_cacheable(v)
+                ]
+            except Exception:
+                key_parts = [
+                    f"arg_{i}={a}"
+                    for i, a in enumerate(args)
+                    if _is_cacheable(a)
+                ] + [
+                    f"{k}={v}"
+                    for k, v in sorted(kwargs.items())
+                    if _is_cacheable(v)
+                ]
+
+            key_body = ":".join(key_parts)
             cache_key = f"{prefix}{func.__name__}:{key_body}"
 
             # Step 1: Query cache if manager claims to be healthy
