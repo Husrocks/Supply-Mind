@@ -101,6 +101,12 @@ class RedisCacheManager:
 
 # Global singleton cache instance
 cache_manager = RedisCacheManager()
+_in_memory_cache: dict[str, tuple[float, Any]] = {}
+
+
+def clear_in_memory_cache() -> None:
+    """Clear local memory cache (used in tests or manual cache flushes)."""
+    _in_memory_cache.clear()
 
 
 def cache_result(ttl_seconds: int = 3600, prefix: str = "supplymind:") -> Callable:
@@ -154,21 +160,36 @@ def cache_result(ttl_seconds: int = 3600, prefix: str = "supplymind:") -> Callab
             key_body = ":".join(key_parts)
             cache_key = f"{prefix}{func.__name__}:{key_body}"
 
-            # Step 1: Query cache if manager claims to be healthy
+            import time
+            now = time.time()
+
+            # Step 1: Query cache (Redis if healthy, fallback to in-memory)
             if cache_manager.is_healthy:
                 cached_val = await cache_manager.get(cache_key)
                 if cached_val:
                     try:
-                        logger.debug("Cache hit for: %s", cache_key)
-                        return json.loads(cached_val)
+                        logger.debug("Cache hit (Redis) for: %s", cache_key)
+                        parsed = json.loads(cached_val)
+                        _in_memory_cache[cache_key] = (now + ttl_seconds, parsed)
+                        return parsed
                     except json.JSONDecodeError:
                         logger.error("JSON decode error reading cache key %s", cache_key)
+            
+            # Check local in-memory fallback cache
+            if cache_key in _in_memory_cache:
+                exp, val = _in_memory_cache[cache_key]
+                if now < exp:
+                    logger.debug("Cache hit (In-Memory) for: %s", cache_key)
+                    return val
+                else:
+                    _in_memory_cache.pop(cache_key, None)
 
-            # Step 2: Fallback execution on miss/break
-            logger.debug("Cache miss/breaker active for: %s", cache_key)
+            # Step 2: Compute execution on miss
+            logger.debug("Cache miss for: %s", cache_key)
             result = await func(*args, **kwargs)
 
-            # Step 3: Write computed payload back to cache
+            # Step 3: Write computed payload back to cache (both memory and Redis)
+            _in_memory_cache[cache_key] = (now + ttl_seconds, result)
             if cache_manager.is_healthy:
                 try:
                     serialized = json.dumps(result)

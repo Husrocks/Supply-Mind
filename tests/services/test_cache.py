@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch
-from api.services.cache import cache_result
+from api.services.cache import cache_result, clear_in_memory_cache
 
 call_count = 0
 
@@ -14,6 +14,13 @@ async def expensive_fn(name: str, session=None):
 
 class DummySession:
     pass
+
+
+@pytest.fixture(autouse=True)
+def clean_cache():
+    clear_in_memory_cache()
+    yield
+    clear_in_memory_cache()
 
 
 @pytest.mark.asyncio
@@ -67,3 +74,17 @@ async def test_different_names_produce_different_cache_entries():
         await expensive_fn("bob")
 
     assert call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_in_memory_cache_fallback_when_redis_offline():
+    """When Redis is not healthy, in-memory cache provides sub-millisecond cache hits."""
+    global call_count
+    call_count = 0
+
+    with patch("api.services.cache.cache_manager.is_healthy", False):
+        res1 = await expensive_fn("charlie")
+        res2 = await expensive_fn("charlie")
+
+    assert call_count == 1
+    assert res1 == res2
