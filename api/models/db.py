@@ -42,11 +42,15 @@ class Base(DeclarativeBase):
     pass
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
-    """FastAPI Dependable for async database session scoping."""
+    """FastAPI Dependable for async database session scoping.
+    Only commits if session has pending changes to eliminate SQLite write-lock
+    contention on read-only requests.
+    """
     async with async_session_factory() as session:
         try:
             yield session
-            await session.commit()
+            if session.in_transaction() and (session.new or session.dirty or session.deleted):
+                await session.commit()
         except Exception:
             await session.rollback()
             raise
