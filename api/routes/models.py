@@ -87,9 +87,14 @@ async def _metric_history(
 @router.get("/performance")
 async def get_model_performance(db: AsyncSession = Depends(get_db_session)):
     """Retrieve latest evaluation metrics — DB first, MLflow fallback for TFT WRMSSE."""
-    val_wrmsse = await _latest_metric(db, "tft", "wrmsse", 0.84)
-    pr_auc = await _latest_metric(db, "lgbm", "pr_auc", 0.92)
-    lstm_threshold = await _latest_metric(db, "lstm_ae", "threshold", 0.045)
+    import asyncio
+    from api.services.thread_pool import run_in_thread
+
+    val_wrmsse, pr_auc, lstm_threshold = await asyncio.gather(
+        _latest_metric(db, "tft", "wrmsse", 0.84),
+        _latest_metric(db, "lgbm", "pr_auc", 0.92),
+        _latest_metric(db, "lstm_ae", "threshold", 0.045),
+    )
 
     # MLflow fallback for WRMSSE when DB has no rows
     if val_wrmsse == 0.84:
@@ -121,6 +126,8 @@ async def get_model_performance(db: AsyncSession = Depends(get_db_session)):
             {"date": today_str, "wrmsse": round(val_wrmsse, 4)},
         ]
 
+    recent_errors = await run_in_thread(_recent_anomaly_errors)
+
     return {
         "tft": {
             "val_wrmsse": round(val_wrmsse, 4),
@@ -136,7 +143,7 @@ async def get_model_performance(db: AsyncSession = Depends(get_db_session)):
         },
         "lstm_ae": {
             "current_threshold": round(lstm_threshold, 4),
-            "recent_errors": _recent_anomaly_errors(),
+            "recent_errors": recent_errors,
         },
     }
 

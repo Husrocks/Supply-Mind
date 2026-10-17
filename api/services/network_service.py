@@ -6,6 +6,7 @@ onboarding DB records, and risk context history.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Any
@@ -17,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from agent.context_builder import get_context_builder
 from agent.orchestrator import get_orchestrator
 from api.models.db_models import RiskContextLog, SupplierOnboarding
+from api.services.thread_pool import run_in_thread
 
 logger = logging.getLogger(__name__)
 
@@ -186,8 +188,10 @@ class NetworkDashboardService:
         fb_anoms = {}
         
         if missing_sids:
-            fb_risks = builder._run_risk_predictions(missing_sids, supplier_df)
-            fb_anoms = builder._run_anomaly_detection(missing_sids, supplier_df)
+            fb_risks, fb_anoms = await asyncio.gather(
+                run_in_thread(builder._run_risk_predictions, missing_sids, supplier_df),
+                run_in_thread(builder._run_anomaly_detection, missing_sids, supplier_df),
+            )
 
         for sid in supplier_ids:
             cached_r = risk_map_db.get(sid)
@@ -367,7 +371,8 @@ class NetworkDashboardService:
                 })
             else:
                 try:
-                    signal = builder._run_demand_forecast(
+                    signal = await run_in_thread(
+                        builder._run_demand_forecast,
                         sku_id, demand_df, current_inventory=5000
                     )
                     actual = None

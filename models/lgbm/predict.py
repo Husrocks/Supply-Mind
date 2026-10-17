@@ -11,8 +11,17 @@ from pathlib import Path
 import joblib
 import pandas as pd
 import numpy as np
-import shap
-import lightgbm as lgb
+
+try:
+    import shap
+except (ImportError, OSError):
+    shap = None
+
+try:
+    import lightgbm as lgb
+except (ImportError, OSError):
+    lgb = None
+
 from pydantic import BaseModel, Field
 
 from config import settings
