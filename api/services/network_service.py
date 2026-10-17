@@ -72,6 +72,22 @@ def _concentration_ratio(supplier_id: str, supplier_df: pd.DataFrame) -> float:
     return float(min(0.95, max(0.05, share)))
 
 
+def _build_concentration_map(supplier_df: pd.DataFrame) -> dict[str, float]:
+    """Pre-compute concentration ratios for all active suppliers in a single vectorized pass."""
+    if supplier_df.empty or "week_num" not in supplier_df.columns or "supplier_id" not in supplier_df.columns:
+        return {}
+    latest_week = supplier_df["week_num"].max()
+    latest = supplier_df[supplier_df["week_num"] == latest_week]
+    total = len(latest)
+    if total == 0:
+        return {}
+    counts = latest["supplier_id"].value_counts()
+    return {
+        str(sid): float(min(0.95, max(0.05, count / total)))
+        for sid, count in counts.items()
+    }
+
+
 def _risk_tier_label(level: str) -> str:
     return level.lower() if level else "unknown"
 
@@ -194,6 +210,17 @@ class NetworkDashboardService:
                 if fb_anoms.get(sid):
                     anomaly_map[sid] = fb_anoms[sid]
 
+        # Pre-compute latest rows for all suppliers in one vectorized pass
+        if not hasattr(supplier_df, "_latest_rows_cache") or not supplier_df._latest_rows_cache:
+            if not supplier_df.empty and "supplier_id" in supplier_df.columns and "week_num" in supplier_df.columns:
+                latest_df = supplier_df.sort_values("week_num").drop_duplicates(subset=["supplier_id"], keep="last")
+                supplier_df._latest_rows_cache = {str(row["supplier_id"]): row for _, row in latest_df.iterrows()}
+            else:
+                supplier_df._latest_rows_cache = {}
+
+        # Pre-compute concentration ratios in one vectorized pass
+        concentration_map = _build_concentration_map(supplier_df)
+
         supplier_risks: list[dict[str, Any]] = []
         anomaly_count = 0
 
@@ -204,12 +231,7 @@ class NetworkDashboardService:
             if ctx.is_anomaly:
                 anomaly_count += 1
 
-            sup_rows = supplier_df[supplier_df["supplier_id"] == sid]
-            latest = (
-                sup_rows.sort_values("week_num").iloc[-1]
-                if not sup_rows.empty
-                else None
-            )
+            latest = supplier_df._latest_rows_cache.get(sid)
             onboarding = onboarding_map.get(sid, {})
 
             country_raw = latest["country"] if latest is not None and "country" in latest.index else None
@@ -229,7 +251,7 @@ class NetworkDashboardService:
                 lead_var = min(1.0, std_lt / max(mean_lt, 1.0))
 
             quality = _row_float(latest, "defect_rate", "defect_rate_pct", default=0.02)
-            concentration = _concentration_ratio(sid, supplier_df)
+            concentration = concentration_map.get(sid, 0.1)
 
             supplier_name = onboarding.get("supplier_name") or (
                 f"{country_raw} · {sid}" if country_raw is not None else sid
