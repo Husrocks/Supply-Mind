@@ -426,12 +426,17 @@ def _build_graph() -> StateGraph:
 # Compiled Graph Singleton
 # ──────────────────────────────────────────────────────────────────────────────
 
-# SqliteSaver stores graph state persistently in the SQLite database.
-from langgraph.checkpoint.sqlite import SqliteSaver
-import sqlite3
-
-_sqlite_conn = sqlite3.connect("supplymind.db", check_same_thread=False)
-_checkpointer = SqliteSaver(_sqlite_conn)
+try:
+    from langgraph.checkpoint.sqlite import SqliteSaver
+    import sqlite3
+    _sqlite_conn = sqlite3.connect("supplymind.db", check_same_thread=False)
+    _checkpointer = SqliteSaver(_sqlite_conn)
+except Exception:
+    try:
+        from langgraph.checkpoint.memory import MemorySaver
+        _checkpointer = MemorySaver()
+    except Exception:
+        _checkpointer = None
 _compiled_app = None
 
 def get_compiled_app():

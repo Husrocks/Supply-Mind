@@ -30,32 +30,42 @@ class InventoryHeatmapService:
         from api.models.db_models import InventoryLevel
         from sqlalchemy import select
 
+        # Single batch query for all SKUs (replaces N individual queries)
+        stmt = select(InventoryLevel).where(InventoryLevel.sku_id.in_(sku_ids))
+        db_res = await db.execute(stmt)
+        inv_map: dict[str, InventoryLevel] = {
+            row.sku_id: row for row in db_res.scalars().all()
+        }
+
+        # Index demand dataframe by SKU for fast O(1) group lookup
+        demand_grouped: dict[str, pd.DataFrame] = {
+            sku: grp.sort_values("d") for sku, grp in demand_df.groupby("id")
+        }
+
+        new_levels: list[InventoryLevel] = []
+
         for sku_id in sku_ids:
-            rows = demand_df[demand_df["id"] == sku_id].sort_values("d")
+            rows = demand_grouped.get(sku_id, pd.DataFrame())
             if rows.empty or "sales" not in rows.columns:
                 continue
 
             recent = rows.tail(28)
             daily_avg = float(recent["sales"].mean())
 
-            # Query the database for the real inventory level
-            stmt = select(InventoryLevel).where(InventoryLevel.sku_id == sku_id)
-            db_res = await db.execute(stmt)
-            inv_level = db_res.scalar_one_or_none()
-
+            inv_level = inv_map.get(sku_id)
             if inv_level is not None:
                 current_inventory = float(inv_level.units_on_hand)
             else:
                 # Pre-seed database on first load with fallback proxy value
                 current_inventory = float(recent.tail(14)["sales"].sum())
-                inv_level = InventoryLevel(
+                new_inv = InventoryLevel(
                     sku_id=sku_id,
                     units_on_hand=int(current_inventory),
                     units_in_transit=int(current_inventory * 0.3),
                     reorder_point=1000
                 )
-                db.add(inv_level)
-                await db.commit()
+                new_levels.append(new_inv)
+                inv_map[sku_id] = new_inv
 
             days_to_stockout = current_inventory / max(daily_avg, 0.01)
 
@@ -79,6 +89,11 @@ class InventoryHeatmapService:
                 "status": status,
                 "forecast_history": history,
             })
+
+        if new_levels:
+            for lvl in new_levels:
+                db.add(lvl)
+            await db.commit()
 
         return results
 

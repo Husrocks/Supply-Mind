@@ -10,10 +10,16 @@ from pathlib import Path
 
 import pandas as pd
 import numpy as np
-import torch
-from pydantic import BaseModel, Field
 
-from pytorch_forecasting import TimeSeriesDataSet, TemporalFusionTransformer
+try:
+    import torch
+    from pytorch_forecasting import TimeSeriesDataSet, TemporalFusionTransformer
+except (ImportError, OSError):
+    torch = None
+    TimeSeriesDataSet = None
+    TemporalFusionTransformer = None
+
+from pydantic import BaseModel, Field
 
 from config import settings
 

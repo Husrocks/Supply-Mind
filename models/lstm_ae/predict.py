@@ -10,8 +10,16 @@ from pathlib import Path
 
 import pandas as pd
 import numpy as np
-import torch
-import torch.nn as nn
+
+try:
+    import torch
+    import torch.nn as nn
+    _ModuleBase = nn.Module
+except (ImportError, OSError):
+    torch = None
+    nn = None
+    _ModuleBase = object
+
 from pydantic import BaseModel
 
 from config import settings
@@ -34,7 +42,7 @@ class AnomalyPrediction(BaseModel):
     is_anomaly: bool
     threshold_used: float
 
-class Attention(nn.Module):
+class Attention(_ModuleBase):
     def __init__(self, encoder_dim: int, decoder_dim: int):
         super().__init__()
         self.attn = nn.Linear(encoder_dim + decoder_dim, decoder_dim)
@@ -47,7 +55,7 @@ class Attention(nn.Module):
         attention_scores = self.v(energy).squeeze(2)
         return torch.softmax(attention_scores, dim=1)
 
-class LSTMAutoencoder(nn.Module):
+class LSTMAutoencoder(_ModuleBase):
     def __init__(self, n_features: int, hidden_dim: int = 32, latent_dim: int = 16, num_layers: int = 2, bidirectional: bool = True):
         super().__init__()
         self.n_features = n_features
