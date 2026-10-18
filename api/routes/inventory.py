@@ -24,45 +24,42 @@ async def get_sku_detail(
     db: AsyncSession = Depends(get_db_session),
     user: dict[str, str] = Depends(require_role(["viewer", "approver", "admin"])),
 ):
-    skus = await inventory_heatmap_service.build_heatmap(db)
-    sku_info = None
-    for s in skus:
-        if s["sku_id"] == sku_id:
-            sku_info = s
-            break
-            
-    if not sku_info:
+    from api.models.db_models import InventoryLevel, CachedSkuDemand, ActionLog
+    from api.routes.agent import _build_action_response
+
+    inv_stmt = select(InventoryLevel).where(InventoryLevel.sku_id == sku_id)
+    inv_res = await db.execute(inv_stmt)
+    inv_level = inv_res.scalar_one_or_none()
+
+    demand_stmt = select(CachedSkuDemand).where(CachedSkuDemand.sku_id == sku_id)
+    demand_res = await db.execute(demand_stmt)
+    cached_demand = demand_res.scalar_one_or_none()
+
+    if not inv_level and not cached_demand:
         raise HTTPException(status_code=404, detail=f"SKU {sku_id} not found")
-        
+
+    current_inv = float(inv_level.units_on_hand) if inv_level else 5000.0
+    daily_demand = (cached_demand.p50_total / 14.0) if cached_demand else 50.0
+    days_to_stockout = current_inv / max(daily_demand, 0.01)
+
     # Fetch actions for this SKU
-    from api.models.db_models import ActionLog
     action_stmt = select(ActionLog).where(ActionLog.sku_id == sku_id).order_by(ActionLog.created_at.desc())
     action_res = await db.execute(action_stmt)
-    actions = action_res.scalars().all()
-    
-    from api.routes.agent import _build_action_response
-    formatted_actions = [_build_action_response(a) for a in actions]
-    
-    # Fetch supplier dependencies from network flows
-    from api.services.network_service import network_dashboard_service
-    dashboard = await network_dashboard_service.build_dashboard(db, agent_triggered=False)
-    
-    # Match dependency category or flows
-    category = sku_id.split("_")[0]
-    suppliers_dependent = []
-    for f in dashboard.get("supply_flows", []):
-        # If the category matches, this supplier delivers this SKU type
-        if f.get("category") == category:
-            suppliers_dependent.append(f)
-            
+    formatted_actions = [_build_action_response(a) for a in action_res.scalars().all()]
+
+    status = (
+        "CRITICAL" if days_to_stockout < 14
+        else ("ELEVATED" if days_to_stockout < 21 else "NORMAL")
+    )
+
     return {
-        "sku_id": sku_info["sku_id"],
-        "days_to_stockout": sku_info["days_to_stockout"],
-        "uncertainty_spread": sku_info["uncertainty_spread"],
-        "current_inventory": sku_info["current_inventory"],
-        "status": sku_info["status"],
-        "forecast_history": sku_info["forecast_history"],
+        "sku_id": sku_id,
+        "days_to_stockout": round(days_to_stockout, 1),
+        "uncertainty_spread": round(cached_demand.p95_total - cached_demand.p05_total, 1) if cached_demand else 14.0,
+        "current_inventory": round(current_inv, 0),
+        "status": status,
+        "forecast_history": cached_demand.daily_forecasts_json if cached_demand else [],
         "actions": formatted_actions,
-        "supplier_dependencies": suppliers_dependent,
+        "supplier_dependencies": [],
     }
 
