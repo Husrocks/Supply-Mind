@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 import { Layout } from './components/Layout';
 import { Login } from './views/Login';
+import { Landing } from './views/Landing';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ViewSkeleton } from './components/ui/ViewSkeleton';
 import { usePrefersReducedMotion } from './hooks/usePrefersReducedMotion';
@@ -68,15 +69,16 @@ function App() {
         <AuthProvider>
           <BrowserRouter>
             <Toaster position="top-right" toastOptions={{
-              style: { background: 'rgba(15,23,42,0.92)', color: '#f1f5f9', border: '1px solid rgba(148,163,184,0.2)', borderRadius: '12px' },
+              style: { background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--hairline)', borderRadius: '12px' },
             }} />
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+              <Route path="/" element={<Landing />} />
+              <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                 <Route element={<AnimatedOutlet />}>
-                  <Route index element={<Lazy><NetworkDashboard /></Lazy>} />
-                  <Route path="override" element={<Lazy><OverrideConsole /></Lazy>} />
-                  <Route path="onboarding" element={<Lazy><SupplierOnboarding /></Lazy>} />
+                  <Route path="/dashboard" element={<Lazy><NetworkDashboard /></Lazy>} />
+                  <Route path="/override" element={<Lazy><OverrideConsole /></Lazy>} />
+                  <Route path="/onboarding" element={<Lazy><SupplierOnboarding /></Lazy>} />
                   <Route path="audit" element={<Lazy><AuditLog /></Lazy>} />
                   <Route path="inventory" element={<Lazy><InventoryHeatmap /></Lazy>} />
                   <Route path="models" element={<Lazy><ModelObservatory /></Lazy>} />

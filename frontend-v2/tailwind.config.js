@@ -4,14 +4,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        canvas: '#0a0a0b',
-        surface: 'rgba(255, 255, 255, 0.02)',
-        ink: '#ffffff',
-        body: '#a1a1aa',
-        muted: '#71717a',
-        hairline: 'rgba(255, 255, 255, 0.08)',
-        risk: { low: '#10b981', medium: '#f59e0b', high: '#f43f5e' },
-        accent: { indigo: '#6366f1', cyan: '#22d3ee', violet: '#8b5cf6' },
+        canvas: 'var(--canvas)',
+        surface: 'var(--surface)',
+        'surface-elevated': 'var(--surface-elevated)',
+        ink: 'var(--ink)',
+        body: 'var(--body)',
+        muted: 'var(--muted)',
+        hairline: 'var(--hairline)',
+        primary: 'var(--accent)',
+        risk: { low: 'var(--risk-low)', medium: 'var(--risk-medium)', high: 'var(--risk-high)' },
+        accent: { indigo: 'var(--accent)', cyan: 'var(--accent)', violet: 'var(--accent-hover)' },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

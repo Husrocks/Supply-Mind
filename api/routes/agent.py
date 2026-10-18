@@ -273,6 +273,8 @@ async def get_actions(
     if sku_id:
         stmt = stmt.where(ActionLog.sku_id == sku_id)
 
+    stmt = stmt.order_by(ActionLog.created_at.desc())
+
     result = await db.execute(stmt)
     actions = result.scalars().all()
 

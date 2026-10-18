@@ -78,9 +78,9 @@ export const GeographicRiskMap = memo(function GeographicRiskMap({ suppliers }: 
         ) : geo ? (
           <div className="relative">
             <svg viewBox="0 0 720 360" className="w-full h-auto">
-              {geo.countries.features.map((f) => (
+              {geo.countries.features.map((f, i) => (
                 <path
-                  key={f.id as string}
+                  key={(f.id as string) || `feature-${i}`}
                   d={geo.path(f) ?? ''}
                   fill={colorFor(String(f.id))}
                   stroke="rgba(148,163,184,0.2)"

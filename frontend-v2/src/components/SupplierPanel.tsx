@@ -224,7 +224,7 @@ export function SupplierPanel({ supplier, onClose, isOpen }: SupplierPanelProps)
                       type="category"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: '#7c828a', fontSize: 10 }}
+                      tick={{ fill: '#e2e8f0', fontSize: 11, fontWeight: 500 }}
                       width={100}
                     />
                     <Tooltip

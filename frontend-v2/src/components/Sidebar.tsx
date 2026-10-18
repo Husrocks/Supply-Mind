@@ -1,7 +1,8 @@
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { 
   LayoutDashboard, ShieldAlert, List, Package, BrainCircuit, 
-  ClipboardCheck, Settings, FileSpreadsheet, X 
+  ClipboardCheck, Settings, FileSpreadsheet, X, LogOut 
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -9,8 +10,9 @@ interface SidebarProps {
 }
 
 export function Sidebar({ onClose }: SidebarProps) {
+  const { logout } = useAuth();
   const navigation = [
-    { name: 'Command Center', href: '/', icon: LayoutDashboard },
+    { name: 'Command Center', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Override Console', href: '/override', icon: ShieldAlert },
     { name: 'Onboarding', href: '/onboarding', icon: ClipboardCheck },
     { name: 'Audit Log', href: '/audit', icon: List },
@@ -66,9 +68,18 @@ export function Sidebar({ onClose }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-hairline text-xs text-muted flex justify-between shrink-0">
-        <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-risk-low" /> Online</span>
-        <span className="font-mono">v1.4</span>
+      <div className="p-4 border-t border-hairline flex flex-col gap-3 shrink-0">
+        <button 
+          onClick={logout}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-body hover:text-ink hover:bg-surface-elevated/50 transition-colors w-full text-left"
+        >
+          <LogOut size={17} className="text-muted" />
+          <span>Sign Out</span>
+        </button>
+        <div className="text-xs text-muted flex justify-between px-3">
+          <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-risk-low" /> Online</span>
+          <span className="font-mono">v1.4</span>
+        </div>
       </div>
     </aside>
   );

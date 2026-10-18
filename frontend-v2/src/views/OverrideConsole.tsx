@@ -103,7 +103,9 @@ export function OverrideConsole() {
                     </div>
 
                     {action.estimated_impact?.cost_delta !== undefined && (
-                      <p className="font-mono text-risk-high text-lg mt-2">${action.estimated_impact.cost_delta.toLocaleString()}</p>
+                      <p className={clsx("font-mono text-lg mt-2", action.estimated_impact.cost_delta > 0 ? "text-risk-high" : "text-muted text-sm")}>
+                        {action.estimated_impact.cost_delta > 0 ? `$${action.estimated_impact.cost_delta.toLocaleString()}` : "Cost: TBD"}
+                      </p>
                     )}
                     <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-hairline">
                       <button type="button" onClick={() => handleReject(action.action_id)} disabled={processingId === action.action_id} className="btn-secondary !h-9 text-sm">
