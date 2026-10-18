@@ -86,8 +86,10 @@ python simulation/supplier_sim.py --suppliers 1200 --weeks 104 --seed 42
 ### 4. Run the Application
 
 ```bash
-# Start the API server
-uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+# Start the API server (scoped reload prevents database writes from restarting the server)
+uvicorn api.main:app --reload --reload-dir api --reload-dir agent --reload-dir models --host 0.0.0.0 --port 8000
+# Alternatively on Windows PowerShell: .\scripts\dev_server.ps1
+# Alternatively on Linux/macOS: ./scripts/dev_server.sh
 ```
 
 ### 5. Verify the Setup
