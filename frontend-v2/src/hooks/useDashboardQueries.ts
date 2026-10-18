@@ -26,7 +26,7 @@ import {
   getSkuRiskContext,
 } from '../api/client';
 
-const POLL_MS = 60_000;
+const POLL_MS = 240_000; // 4-minute polling interval in dev to prevent CPU / thread starvation
 
 export function useRiskContext() {
   return useQuery({
@@ -37,52 +37,60 @@ export function useRiskContext() {
   });
 }
 
-export function useInventory() {
+export function useInventory(enabled = true) {
   return useQuery({
     queryKey: queryKeys.inventory,
     queryFn: fetchInventory,
-    staleTime: 60_000,
+    staleTime: 120_000,
+    enabled,
   });
 }
 
-export function usePendingActions() {
+export function usePendingActions(enabled = true) {
   return useQuery({
     queryKey: queryKeys.pendingActions,
     queryFn: fetchPendingActions,
-    refetchInterval: 60_000,
+    refetchInterval: POLL_MS,
+    staleTime: POLL_MS / 2,
+    enabled,
   });
 }
 
-export function useAllActions() {
+export function useAllActions(enabled = true) {
   return useQuery({
     queryKey: queryKeys.allActions,
     queryFn: fetchAllActions,
     refetchInterval: POLL_MS,
+    staleTime: POLL_MS / 2,
+    enabled,
   });
 }
 
-export function useAuditLog() {
+export function useAuditLog(enabled = true) {
   return useQuery({
     queryKey: queryKeys.auditLog,
     queryFn: fetchAuditLog,
-    staleTime: 30_000,
+    staleTime: 60_000,
+    enabled,
   });
 }
 
-export function useModelPerformance() {
+export function useModelPerformance(enabled = true) {
   return useQuery({
     queryKey: queryKeys.modelPerformance,
     queryFn: fetchModelPerformance,
-    staleTime: 120_000,
+    staleTime: 180_000,
+    enabled,
   });
 }
 
-export function useSchedulerHealth() {
+export function useSchedulerHealth(enabled = true) {
   return useQuery({
     queryKey: queryKeys.schedulerHealth,
     queryFn: fetchSchedulerHealth,
     refetchInterval: POLL_MS,
     retry: 1,
+    enabled,
   });
 }
 
@@ -99,14 +107,17 @@ export function useDashboardQueries() {
   const queryClient = useQueryClient();
   const isCached = (key: readonly string[]) => queryClient.getQueryData(key) !== undefined;
 
+  const risk = useRiskContext();
+  const riskReady = !risk.isLoading;
+
   return {
-    risk: useRiskContext(),
-    inventory: useInventory(),
-    pending: usePendingActions(),
-    actions: useAllActions(),
-    audit: useAuditLog(),
-    models: useModelPerformance(),
-    scheduler: useSchedulerHealth(),
+    risk,
+    inventory: useInventory(riskReady),
+    pending: usePendingActions(riskReady),
+    actions: useAllActions(riskReady),
+    audit: useAuditLog(riskReady),
+    models: useModelPerformance(riskReady),
+    scheduler: useSchedulerHealth(riskReady),
     shouldAnimateEntry: !isCached(queryKeys.riskContext),
   };
 }

@@ -1,15 +1,15 @@
 import axios from 'axios';
 
-const apiURL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const apiURL = import.meta.env.VITE_API_URL || '';
 
 export const apiClient = axios.create({
   baseURL: `${apiURL}/api/v1`,
-  timeout: 15000,
+  timeout: 120000,
   headers: { 'Content-Type': 'application/json' },
 });
 
 export const healthClient = axios.create({
-  baseURL: apiURL,
+  baseURL: apiURL || '',
   timeout: 5000,
 });
 

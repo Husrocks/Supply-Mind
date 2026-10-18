@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import ForceGraph2D from 'react-force-graph-2d';
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
+const ForceGraph2D = lazy(() => import('react-force-graph-2d'));
 import { AlertCircle } from 'lucide-react';
 import { useDashboardQueries } from '../hooks/useDashboardQueries';
 import { ViewSkeleton } from '../components/ui/ViewSkeleton';
@@ -127,24 +127,12 @@ export function NetworkDashboard() {
   return (
     <div className="h-full overflow-y-auto">
       <Stagger animate={shouldAnimateEntry} className="p-5 lg:p-6 space-y-5 max-w-[1400px] mx-auto">
-        <StaggerItem className="relative overflow-hidden rounded-2xl border border-white/5 min-h-[320px] flex items-center bg-[#0a0a0b]">
-          <div className="absolute inset-0 z-0">
-            <img src="/hero.png" alt="Supply Chain AI" className="w-full h-full object-cover opacity-50 mix-blend-screen" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0b] via-[#0a0a0b]/80 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0b] to-transparent opacity-80" />
-          </div>
-          
-          <div className="relative z-10 p-8 lg:p-12 max-w-2xl">
-            <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-3 tracking-tight leading-tight">
-              Command Center
-            </h1>
-            <p className="text-slate-400 text-sm lg:text-base leading-relaxed mb-6 max-w-xl">
-              Real-time risk prediction and autonomous supply chain intelligence.
-            </p>
-            <div className="flex items-center gap-4">
-              <button className="btn-primary" onClick={() => document.getElementById('alert-center')?.scrollIntoView({ behavior: 'smooth' })}>
-                View Active Alerts
-              </button>
+        {/* Dashboard Title */}
+        <StaggerItem>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-ink">Command Center</h1>
+              <p className="text-sm text-muted">Real-time risk prediction and autonomous intelligence.</p>
             </div>
           </div>
         </StaggerItem>
@@ -215,19 +203,21 @@ export function NetworkDashboard() {
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b]" /> Elevated Risk</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#f43f5e]" /> Critical Risk</span>
             </div>
-            <ForceGraph2D
-              ref={graphRef}
-              width={dimensions.width}
-              height={dimensions.height}
-              graphData={graphData}
-              nodeColor={getNodeColor}
-              nodeRelSize={6}
-              linkColor={getLinkColor}
-              linkWidth={2}
-              onNodeClick={handleNodeClick}
-              backgroundColor="#030712"
-              enableZoomInteraction={false}
-            />
+            <Suspense fallback={<div className="flex items-center justify-center h-full text-xs text-muted">Loading network topology...</div>}>
+              <ForceGraph2D
+                ref={graphRef}
+                width={dimensions.width}
+                height={dimensions.height}
+                graphData={graphData}
+                nodeColor={getNodeColor}
+                nodeRelSize={6}
+                linkColor={getLinkColor}
+                linkWidth={2}
+                onNodeClick={handleNodeClick}
+                backgroundColor="#030712"
+                enableZoomInteraction={false}
+              />
+            </Suspense>
           </div>
         </StaggerItem>
 
