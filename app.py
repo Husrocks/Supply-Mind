@@ -108,7 +108,38 @@ try:
 except Exception:
     pass
 
-# 5. Import FastAPI application & add health/agent probes
+# 5. Patch Starlette Jinja2Templates for Gradio 4.x compatibility
+# Starlette >= 0.38 changed TemplateResponse signature to (self, request, name, context, ...)
+# Gradio 4.x calls (self, name, context, ...), which causes Starlette to pass dict to Jinja2,
+# raising "TypeError: unhashable type: 'dict'". This monkeypatch makes both signatures work.
+try:
+    from starlette.templating import Jinja2Templates
+    _orig_TemplateResponse = Jinja2Templates.TemplateResponse
+
+    def _safe_template_response(self, *args, **kwargs):
+        if len(args) >= 2 and isinstance(args[0], str) and isinstance(args[1], dict):
+            name = args[0]
+            context = args[1]
+            request = context.get("request")
+            return _orig_TemplateResponse(self, request, name, context, *args[2:], **kwargs)
+        elif len(args) == 1 and isinstance(args[0], str) and "context" in kwargs:
+            name = args[0]
+            context = kwargs.pop("context")
+            request = context.get("request") if isinstance(context, dict) else None
+            return _orig_TemplateResponse(self, request, name, context, **kwargs)
+        elif "name" in kwargs and "context" in kwargs and "request" not in kwargs:
+            name = kwargs.pop("name")
+            context = kwargs.pop("context")
+            request = context.get("request") if isinstance(context, dict) else None
+            return _orig_TemplateResponse(self, request, name, context, **kwargs)
+        return _orig_TemplateResponse(self, *args, **kwargs)
+
+    Jinja2Templates.TemplateResponse = _safe_template_response
+    print("Starlette Jinja2Templates compatibility patch applied successfully.")
+except Exception as _patch_err:
+    print(f"Notice: Jinja2Templates patch skipped: {_patch_err}")
+
+# 6. Import FastAPI application & add health/agent probes
 from api.main import app as fastapi_app
 
 @fastapi_app.get("/.well-known/agent.json")

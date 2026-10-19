@@ -66,6 +66,7 @@ celery>=5.3.0                    # Async task queue for agent execution
 # API Backend
 # ----------------------------
 fastapi>=0.111.0                 # REST API framework
+starlette<0.38.0                 # Compatible with Gradio 4.x TemplateResponse
 gradio>=4.44.0,<5.0.0            # Gradio 4.x SDK wrapper for ZeroGPU
 spaces>=0.20.0                   # Hugging Face ZeroGPU SDK
 huggingface_hub<0.26.0           # Compatible with Gradio 4.x oauth
