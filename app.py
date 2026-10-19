@@ -33,7 +33,25 @@ print(f"Hugging Face runtime using: {os.environ['DATABASE_URL']}")
 # 2. Import existing FastAPI application
 from api.main import app as fastapi_app
 
-# 3. Mount Gradio interface
+# 3. Patch huggingface_hub for Gradio compatibility (HfFolder removed in newer versions)
+try:
+    import huggingface_hub
+    if not hasattr(huggingface_hub, "HfFolder"):
+        class HfFolder:
+            @staticmethod
+            def get_token():
+                return os.environ.get("HF_TOKEN") or None
+            @staticmethod
+            def save_token(token):
+                pass
+            @staticmethod
+            def delete_token():
+                pass
+        huggingface_hub.HfFolder = HfFolder
+except Exception:
+    pass
+
+# 4. Mount Gradio interface
 import gradio as gr
 
 gr.close_all()

@@ -67,6 +67,7 @@ celery>=5.3.0                    # Async task queue for agent execution
 # ----------------------------
 fastapi>=0.111.0                 # REST API framework
 gradio>=4.44.0,<5.0.0            # Gradio 4.x SDK wrapper for ZeroGPU
+huggingface_hub<0.26.0           # Compatible with Gradio 4.x oauth
 uvicorn[standard]>=0.30.0        # ASGI server
 pydantic>=2.7.0                  # Data validation & schemas
 pydantic-settings>=2.3.0         # Settings management via .env
