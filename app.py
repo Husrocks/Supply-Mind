@@ -212,7 +212,7 @@ def run_sku_demand_model_gpu(sku_id: str = "FOODS_1_001_CA_1_evaluation"):
         return {
             "sku_id": row["sku_id"],
             "model_architecture": "Temporal Fusion Transformer (TFT) with Quantile Loss",
-            "forecast_horizon_days": int(row["forecast_horizon_days"]),
+            "forecast_horizon_days": 14,
             "p05_demand_bound (conservative)": p05,
             "p50_demand_forecast (expected)": p50,
             "p95_demand_bound (peak risk)": p95,

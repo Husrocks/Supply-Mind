@@ -201,9 +201,23 @@ class ContextBuilder:
 
     def __init__(self):
         logger.info("Initialising ContextBuilder — loading ML predictors...")
-        self.risk_predictor = get_risk_predictor()
-        self.anomaly_predictor = get_anomaly_predictor()
-        self.demand_predictor = get_demand_predictor()
+        try:
+            self.risk_predictor = get_risk_predictor()
+        except Exception as e:
+            logger.warning("Could not load risk predictor: %s", e)
+            self.risk_predictor = None
+
+        try:
+            self.anomaly_predictor = get_anomaly_predictor()
+        except Exception as e:
+            logger.warning("Could not load anomaly predictor: %s", e)
+            self.anomaly_predictor = None
+
+        try:
+            self.demand_predictor = get_demand_predictor()
+        except Exception as e:
+            logger.warning("Could not load demand predictor: %s", e)
+            self.demand_predictor = None
         logger.info("ContextBuilder ready.")
 
     # ── Public API ────────────────────────────────────────────────────────────

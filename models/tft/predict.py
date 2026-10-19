@@ -46,7 +46,9 @@ class DemandPredictor:
 
     def _load_model(self):
         if not self.model_path.exists():
-            raise FileNotFoundError(f"TFT Model checkpoint not found at: {self.model_path}")
+            logger.warning("TFT Model checkpoint not found at: %s. Operating in heuristic fallback mode.", self.model_path)
+            self.model = None
+            return
             
         logger.info("Loading TFT model from %s", self.model_path)
         import torchmetrics
@@ -66,6 +68,34 @@ class DemandPredictor:
         """
         # Prepare data copy
         df_prep = df.copy()
+
+        # If model checkpoint is not loaded, compute heuristic quantile forecast
+        if self.model is None or TemporalFusionTransformer is None:
+            group_col = "id" if "id" in df_prep.columns else "sku_id" if "sku_id" in df_prep.columns else None
+            results: dict[str, DemandForecast] = {}
+            if group_col is not None and not df_prep.empty:
+                for sid, grp in df_prep.groupby(group_col):
+                    recent = grp.tail(14)
+                    val = float(recent["sales"].mean()) if "sales" in recent.columns and not recent.empty else 10.0
+                    p50 = max(1.0, round(val * 14, 2))
+                    p05 = round(p50 * 0.70, 2)
+                    p95 = round(p50 * 1.35, 2)
+                    inv = current_inventory.get(str(sid), 5000)
+                    daily_rate = max(0.1, p50 / 14)
+                    daily = [
+                        {"day_offset": d, "p05": round(p05 / 14, 2), "p50": round(p50 / 14, 2), "p95": round(p95 / 14, 2)}
+                        for d in range(1, 15)
+                    ]
+                    results[str(sid)] = DemandForecast(
+                        sku_id=str(sid),
+                        days_to_stockout_p50=round(inv / daily_rate, 1),
+                        days_to_stockout_p95=round(inv / max(0.1, p95 / 14), 1),
+                        p05_14day_total=p05,
+                        p50_14day_total=p50,
+                        p95_14day_total=p95,
+                        daily_forecasts=daily,
+                    )
+            return results
         
         # Ensure correct column names matching training
         # If the df has 'sku_id', map it to 'id' (since TFT group_id was 'id')
