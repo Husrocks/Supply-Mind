@@ -25,6 +25,11 @@ if not os.path.exists(_db_file) and os.path.exists(_sql_file):
     except Exception as e:
         print(f"Warning: database initialization error: {e}")
 
+# Explicitly force SQLite URL so asyncpg / postgres is never invoked on Hugging Face
+_db_posix = _db_file.replace("\\", "/")
+os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{_db_posix}"
+print(f"Hugging Face runtime using: {os.environ['DATABASE_URL']}")
+
 # 2. Import existing FastAPI application
 from api.main import app as fastapi_app
 
