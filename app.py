@@ -430,12 +430,18 @@ demo = gr.TabbedInterface(
     title="🧠 SupplyMind AI Engine (ZeroGPU Accelerated)",
 )
 
-# CRITICAL: Enable Queueing — MANDATORY for ZeroGPU event routing and startup detection
+# 8. Launch natively via Gradio demo.launch (Strictly required for ZeroGPU startup detection)
 demo.queue()
 
-# 8. Mount Gradio interface onto FastAPI root
-app = gr.mount_gradio_app(fastapi_app, demo, path="/")
-
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=7860)
+    app, _, _ = demo.launch(
+        server_name="0.0.0.0",
+        server_port=7860,
+        prevent_thread_lock=True,
+    )
+    # Mount FastAPI REST endpoints onto the running Gradio FastAPI server for Vercel
+    try:
+        app.mount("/api", fastapi_app)
+    except Exception as e:
+        logger.warning(f"Could not mount fastapi_app: {e}")
+    demo.block_thread()
