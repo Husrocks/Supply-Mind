@@ -470,9 +470,19 @@ if __name__ == "__main__":
         server_port=7860,
         prevent_thread_lock=True,
     )
+    # Initialize health cache on fastapi_app if not already set
+    if not hasattr(fastapi_app.state, "health_cache"):
+        fastapi_app.state.health_cache = {
+            "status": "ok",
+            "app": "SupplyMind",
+            "version": "1.0.0",
+            "zero_gpu_accelerated": True,
+        }
+
     # Mount FastAPI REST endpoints onto the running Gradio FastAPI server for Vercel
     try:
         app.mount("/api", fastapi_app)
+        logger.info("Successfully mounted fastapi_app on /api")
     except Exception as e:
         logger.warning(f"Could not mount fastapi_app: {e}")
     demo.block_thread()

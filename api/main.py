@@ -142,24 +142,34 @@ from api.routes import (
 )
 
 # API Routers
-app.include_router(auth.router, prefix=settings.api_prefix)
-app.include_router(predictions.router, prefix=settings.api_prefix)
-app.include_router(agent.router, prefix=settings.api_prefix)
-app.include_router(inventory.router, prefix=settings.api_prefix)
-app.include_router(models.router, prefix=settings.api_prefix)
-app.include_router(suppliers.router, prefix=settings.api_prefix)
-app.include_router(scheduler.router, prefix=settings.api_prefix)
-app.include_router(settings_router.router, prefix=settings.api_prefix)
-app.include_router(reports.router, prefix=settings.api_prefix)
-app.include_router(simulation.router, prefix=settings.api_prefix)
-app.include_router(reorder.router, prefix=settings.api_prefix)
-app.include_router(explainability.router, prefix=settings.api_prefix)
-app.include_router(assistant.router, prefix=settings.api_prefix)
+# Register under both /api/v1 and /v1 so endpoints work whether mounted as a sub-app at /api or accessed standalone
+_api_routers = [
+    auth.router, predictions.router, agent.router, inventory.router,
+    models.router, suppliers.router, scheduler.router, settings_router.router,
+    reports.router, simulation.router, reorder.router, explainability.router,
+    assistant.router
+]
+
+for pfx in list(dict.fromkeys([settings.api_prefix, "/api/v1", "/v1"])):
+    for r in _api_routers:
+        app.include_router(r, prefix=pfx)
 
 
 @app.get("/health", tags=["System"])
+@app.get("/api/health", tags=["System"])
+@app.get("/v1/health", tags=["System"])
+@app.get("/api/v1/health", tags=["System"])
 async def health(request: Request):
-    return request.app.state.health_cache
+    return getattr(
+        request.app.state,
+        "health_cache",
+        {
+            "status": "ok",
+            "app": settings.app_name,
+            "version": settings.app_version,
+            "zero_gpu_accelerated": True,
+        }
+    )
 
 
 # ── Static SPA Serving (All-in-One Deployment) ───────────────────
