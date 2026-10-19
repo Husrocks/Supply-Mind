@@ -246,6 +246,64 @@ class ContextBuilder:
         # ── 3. LSTM-AE Anomaly Detection ─────────────────────────────────
         anomaly_map = self._run_anomaly_detection(all_supplier_ids, supplier_processed_df)
 
+        return self._assemble_frame(
+            sku_id=sku_id,
+            primary_supplier_id=primary_supplier_id,
+            demand_signal=demand_signal,
+            risk_map=risk_map,
+            anomaly_map=anomaly_map,
+            alt_ids=alt_ids,
+            supplier_processed_df=supplier_processed_df,
+            current_inventory=current_inventory,
+        )
+
+    def build_frame_from_predictions(
+        self,
+        *,
+        sku_id: str,
+        primary_supplier_id: str,
+        demand_signal: "DemandSignal",
+        risk_map: dict[str, "SupplierRiskPrediction"],
+        anomaly_map: dict[str, "AnomalyPrediction"],
+        supplier_processed_df: pd.DataFrame,
+        current_inventory: int,
+        alternative_supplier_ids: list[str] | None = None,
+    ) -> RiskContextFrame:
+        """
+        Build a RiskContextFrame from ALREADY-COMPUTED ML predictions.
+
+        This skips all ML inference (TFT, LightGBM, LSTM-AE) and only performs
+        the assembly step: building supplier contexts, computing criticality
+        and overall risk level.
+
+        Use this when the ML models have already been run (e.g. by the
+        gather_ml_predictions graph node) and their results are available.
+        """
+        alt_ids = alternative_supplier_ids or []
+        return self._assemble_frame(
+            sku_id=sku_id,
+            primary_supplier_id=primary_supplier_id,
+            demand_signal=demand_signal,
+            risk_map=risk_map,
+            anomaly_map=anomaly_map,
+            alt_ids=alt_ids,
+            supplier_processed_df=supplier_processed_df,
+            current_inventory=current_inventory,
+        )
+
+    def _assemble_frame(
+        self,
+        *,
+        sku_id: str,
+        primary_supplier_id: str,
+        demand_signal: "DemandSignal",
+        risk_map: dict,
+        anomaly_map: dict,
+        alt_ids: list[str],
+        supplier_processed_df: pd.DataFrame,
+        current_inventory: int,
+    ) -> RiskContextFrame:
+        """Shared assembly logic — builds RiskContextFrame from prediction results."""
         # ── 4. Assemble supplier contexts ────────────────────────────────
         primary_ctx = self._build_supplier_context(
             primary_supplier_id, risk_map, anomaly_map, supplier_processed_df

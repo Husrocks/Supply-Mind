@@ -107,8 +107,8 @@ export const GeographicRiskMap = memo(function GeographicRiskMap({ suppliers }: 
               <div className="absolute top-2 right-2 glass-card !p-3 text-xs pointer-events-none">
                 <p className="font-semibold text-ink">{hover.code}</p>
                 <p className="text-body">{hover.count} supplier{hover.count !== 1 ? 's' : ''}</p>
-                <p className="font-mono tabular-nums text-ink">{(hover.avgRisk * 100).toFixed(0)}% avg risk</p>
-                <p className="font-mono tabular-nums text-muted">{(hover.avgGeo * 100).toFixed(0)}% geo factor</p>
+                <p className="font-mono tabular-nums text-ink">{((hover.avgRisk ?? 0) * 100).toFixed(0)}% avg risk</p>
+                <p className="font-mono tabular-nums text-muted">{((hover.avgGeo ?? 0) * 100).toFixed(0)}% geo factor</p>
               </div>
             )}
           </div>

@@ -198,3 +198,46 @@ export interface OnboardRequest {
   capacity_info?: Record<string, unknown>;
   reference_check_status?: string;
 }
+
+export interface SkuExplainability {
+  sku_id: string;
+  model_name?: string;
+  forecast_horizon_days?: number;
+  p05_total_demand?: number;
+  p50_total_demand?: number;
+  p95_total_demand?: number;
+  p05_demand?: number;
+  p50_demand?: number;
+  p95_demand?: number;
+  uncertainty_spread?: number;
+  relative_uncertainty_pct?: number;
+  uncertainty_ratio?: number;
+  uncertainty_interpretation?: string;
+  plain_english_summary?: string;
+  methodology_note?: string;
+  model_confidence_tier?: string;
+  daily_quantiles?: Array<{ date: string; p05?: number; p50?: number; p95?: number; actual?: number }>;
+  prediction_timestamp?: string;
+  forecast_timestamp?: string;
+}
+
+export interface SupplierExplainability {
+  supplier_id: string;
+  supplier_name: string;
+  model_name?: string;
+  calibrated_risk_score?: number;
+  risk_tier?: string;
+  plain_english_summary?: string;
+  attribution_disclaimer?: string;
+  shap_drivers?: ShapDriver[];
+  is_anomaly?: boolean;
+  reconstruction_mse?: number;
+  anomaly_threshold_mse?: number;
+  anomaly_explanation?: string;
+  on_time_delivery_rate?: number;
+  lead_time_variance?: number;
+  quality_failure_rate?: number;
+  geopolitical_risk?: number;
+  data_timestamp?: string;
+  prediction_timestamp?: string;
+}

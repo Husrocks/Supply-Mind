@@ -73,6 +73,7 @@ sqlalchemy>=2.0.0                # ORM
 alembic>=1.13.0                  # Database migrations
 asyncpg>=0.29.0                  # Async PostgreSQL driver
 psycopg2-binary>=2.9.0           # Sync PostgreSQL driver
+aiosqlite>=0.20.0                # Async SQLite driver (for zero-dependency deployment)
 python-jose[cryptography]>=3.3.0 # JWT authentication
 pyjwt>=2.8.0                      # JWT encode/decode
 passlib[bcrypt]>=1.7.4           # Password hashing

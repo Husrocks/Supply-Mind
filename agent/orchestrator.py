@@ -52,6 +52,12 @@ class AgentState(TypedDict):
     anomaly_flag: bool                       # LSTM-AE is_anomaly
     reconstruction_error: float              # LSTM-AE reconstruction MSE
 
+    # Pre-computed ML prediction maps (serialised dicts, populated by gather_ml_predictions)
+    # These allow build_risk_context to skip re-running all 3 models.
+    risk_map_serialized: dict[str, Any]      # {supplier_id: SupplierRiskPrediction.dict()}
+    anomaly_map_serialized: dict[str, Any]   # {supplier_id: AnomalyPrediction.dict()}
+    demand_signal_dict: dict[str, Any]       # DemandSignal.model_dump()
+
     # Context frame (populated by build_risk_context)
     risk_context_frame: dict[str, Any]       # serialised RiskContextFrame.model_dump()
 
@@ -87,6 +93,10 @@ def gather_ml_predictions(state: AgentState) -> AgentState:
     OBSERVE node: run all three ML models and store raw outputs in state.
     Uses the shared ContextBuilder instance to access pre-loaded predictors
     and data without duplicating inference code.
+
+    Stores the full prediction maps (risk_map, anomaly_map, demand_signal)
+    serialised as dicts so build_risk_context can reuse them without
+    re-running any ML models.
     """
     logger.info("[gather_ml_predictions] SKU=%s | Supplier=%s", state["sku_id"], state["primary_supplier_id"])
 
@@ -102,22 +112,37 @@ def gather_ml_predictions(state: AgentState) -> AgentState:
     # ── TFT Demand Forecast ────────────────────────────────────────────────
     demand_signal = cb._run_demand_forecast(sku_id, demand_df, current_inventory)
 
-    # ── LightGBM Supplier Risk ─────────────────────────────────────────────
+    # ── LightGBM Supplier Risk (primary + alternatives) ────────────────────
     all_supplier_ids = [primary_supplier_id] + alt_ids
     risk_map         = cb._run_risk_predictions(all_supplier_ids, supplier_df)
     primary_risk     = risk_map.get(primary_supplier_id)
 
-    # ── LSTM-AE Anomaly Detection ──────────────────────────────────────────
-    anomaly_map  = cb._run_anomaly_detection([primary_supplier_id], supplier_df)
+    # ── LSTM-AE Anomaly Detection (primary + alternatives) ─────────────────
+    anomaly_map  = cb._run_anomaly_detection(all_supplier_ids, supplier_df)
     primary_anon = anomaly_map.get(primary_supplier_id)
+
+    # Serialise full maps for reuse by build_risk_context (avoids duplicate inference)
+    risk_map_ser = {
+        sid: {"supplier_id": p.supplier_id, "risk_score": p.risk_score,
+              "risk_level": p.risk_level, "shap_drivers": p.shap_drivers}
+        for sid, p in risk_map.items()
+    }
+    anomaly_map_ser = {
+        sid: {"supplier_id": p.supplier_id, "is_anomaly": p.is_anomaly,
+              "reconstruction_error": p.reconstruction_error}
+        for sid, p in anomaly_map.items()
+    }
 
     return {
         **state,
         "demand_forecast": demand_signal.model_dump(),
+        "demand_signal_dict": demand_signal.model_dump(),
         "supplier_risk_score": primary_risk.risk_score if primary_risk else 0.0,
         "shap_drivers":        primary_risk.shap_drivers if primary_risk else [],
         "anomaly_flag":        primary_anon.is_anomaly if primary_anon else False,
         "reconstruction_error": primary_anon.reconstruction_error if primary_anon else 0.0,
+        "risk_map_serialized": risk_map_ser,
+        "anomaly_map_serialized": anomaly_map_ser,
         "audit_entries": [{
             "node": "gather_ml_predictions",
             "sku_id": sku_id,
@@ -134,20 +159,54 @@ def gather_ml_predictions(state: AgentState) -> AgentState:
 
 def build_risk_context(state: AgentState) -> AgentState:
     """
-    ORIENT node: assembles a RiskContextFrame using ContextBuilder.build_frame().
-    The full frame is serialised to a dict so it is JSON-safe in the graph state.
+    ORIENT node: assembles a RiskContextFrame from ML predictions already
+    computed by gather_ml_predictions.
+
+    Does NOT re-run any ML models — uses the serialised risk_map, anomaly_map,
+    and demand_signal stored in graph state by the previous node.
     """
-    logger.info("[build_risk_context] Building frame for SKU=%s", state["sku_id"])
+    logger.info("[build_risk_context] Assembling frame (no ML re-run) for SKU=%s", state["sku_id"])
 
     cb          = get_context_builder()
     data        = _get_orchestrator_data()
     supplier_df = data["supplier_df"]
-    demand_df   = data["demand_df"]
 
-    frame: RiskContextFrame = cb.build_frame(
+    # ── Deserialise pre-computed predictions from state ────────────────────
+    from .context_builder import DemandSignal
+    from models.lgbm.predict import SupplierRiskPrediction
+    from models.lstm_ae.predict import AnomalyPrediction
+
+    # Rebuild DemandSignal from dict
+    demand_signal = DemandSignal(**state.get("demand_signal_dict", {"sku_id": state["sku_id"]}))
+
+    # Rebuild risk_map: {supplier_id: SupplierRiskPrediction}
+    risk_map_ser = state.get("risk_map_serialized", {})
+    risk_map = {}
+    for sid, d in risk_map_ser.items():
+        risk_map[sid] = SupplierRiskPrediction(
+            supplier_id=d["supplier_id"],
+            risk_score=d["risk_score"],
+            risk_level=d["risk_level"],
+            shap_drivers=d.get("shap_drivers", []),
+        )
+
+    # Rebuild anomaly_map: {supplier_id: AnomalyPrediction}
+    anomaly_map_ser = state.get("anomaly_map_serialized", {})
+    anomaly_map = {}
+    for sid, d in anomaly_map_ser.items():
+        anomaly_map[sid] = AnomalyPrediction(
+            supplier_id=d["supplier_id"],
+            is_anomaly=d["is_anomaly"],
+            reconstruction_error=d["reconstruction_error"],
+        )
+
+    # ── Build frame using assembly-only path (no ML inference) ─────────────
+    frame: RiskContextFrame = cb.build_frame_from_predictions(
         sku_id=state["sku_id"],
         primary_supplier_id=state["primary_supplier_id"],
-        demand_history_df=demand_df,
+        demand_signal=demand_signal,
+        risk_map=risk_map,
+        anomaly_map=anomaly_map,
         supplier_processed_df=supplier_df,
         current_inventory=state.get("current_inventory", 5000),
         alternative_supplier_ids=state.get("alternative_supplier_ids") or None,
@@ -593,6 +652,9 @@ def run_cycle(
         "shap_drivers": [],
         "anomaly_flag": False,
         "reconstruction_error": 0.0,
+        "risk_map_serialized": {},
+        "anomaly_map_serialized": {},
+        "demand_signal_dict": {},
         "risk_context_frame": {},
         "policy_result_dict": {},
         "recommended_action_type": "",

@@ -55,7 +55,7 @@ export function RiskContextSimulator({
         <button 
           onClick={handleSimulate}
           disabled={mutation.isPending || !supplierId}
-          className="btn-primary !h-8 !text-xs !px-4 flex items-center gap-1.5"
+          className="btn-primary !min-h-[40px] !text-xs !px-4 flex items-center gap-1.5 touch-action-manipulation"
         >
           {mutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
           Run Simulation
@@ -98,9 +98,9 @@ export function RiskContextSimulator({
                     key={s.supplier_id}
                     onClick={() => toggleAltSupplier(s.supplier_id)}
                     className={clsx(
-                      "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border",
+                      "px-3 min-h-[36px] rounded-lg text-xs font-medium transition-colors border touch-action-manipulation flex items-center",
                       isSelected 
-                        ? "bg-indigo-500/20 text-indigo-300 border-indigo-500/30" 
+                        ? "bg-indigo-500/20 text-indigo-300 border-indigo-500/30 font-semibold" 
                         : "bg-slate-800/50 text-slate-400 border-slate-700/50 hover:bg-slate-700/50"
                     )}
                   >

@@ -27,7 +27,7 @@ export function buildAlerts(
         id: `sku-${s.sku_id}`,
         severity: 'critical',
         title: `Stockout risk: ${s.sku_id}`,
-        message: `${s.days_to_stockout.toFixed(1)} days to stockout`,
+        message: `${(s.days_to_stockout ?? 0).toFixed(1)} days to stockout`,
         timestamp: new Date().toISOString(),
         skuId: s.sku_id,
       });

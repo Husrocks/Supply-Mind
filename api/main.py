@@ -67,9 +67,9 @@ async def lifespan(app: FastAPI):
     }
 
     # ── Database Model Setup ─────────────────────────────────────
-    # Database schema is now managed externally via Alembic migrations.
-    # To run migrations: `alembic upgrade head`
-    logger.info("Database schemas are managed by Alembic.")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("Database schema tables checked/created.")
 
     # ── Cache Layer Setup ─────────────────────────────────────────
     await cache_manager.connect()
@@ -124,7 +124,7 @@ app = FastAPI(
 # Registrations
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174", "http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -136,7 +136,10 @@ from fastapi.exceptions import RequestValidationError
 app.add_exception_handler(RequestValidationError, rfc7807_exception_handler)
 app.add_exception_handler(Exception, rfc7807_exception_handler)
 
-from api.routes import agent, predictions, inventory, models, auth, suppliers, scheduler, settings as settings_router, reports
+from api.routes import (
+    agent, predictions, inventory, models, auth, suppliers, scheduler,
+    settings as settings_router, reports, simulation, reorder, explainability, assistant
+)
 
 # API Routers
 app.include_router(auth.router, prefix=settings.api_prefix)
@@ -148,8 +151,69 @@ app.include_router(suppliers.router, prefix=settings.api_prefix)
 app.include_router(scheduler.router, prefix=settings.api_prefix)
 app.include_router(settings_router.router, prefix=settings.api_prefix)
 app.include_router(reports.router, prefix=settings.api_prefix)
+app.include_router(simulation.router, prefix=settings.api_prefix)
+app.include_router(reorder.router, prefix=settings.api_prefix)
+app.include_router(explainability.router, prefix=settings.api_prefix)
+app.include_router(assistant.router, prefix=settings.api_prefix)
 
 
 @app.get("/health", tags=["System"])
 async def health(request: Request):
     return request.app.state.health_cache
+
+
+# ── Static SPA Serving (All-in-One Deployment) ───────────────────
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+_base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_static_dir = os.path.join(_base_dir, "static")
+if not os.path.isdir(_static_dir):
+    _alt_dir = os.path.join(_base_dir, "frontend-v2", "dist")
+    if os.path.isdir(_alt_dir):
+        _static_dir = _alt_dir
+
+if os.path.isdir(_static_dir):
+    _assets_dir = os.path.join(_static_dir, "assets")
+    if os.path.isdir(_assets_dir):
+        app.mount("/assets", StaticFiles(directory=_assets_dir), name="assets")
+
+    @app.get("/", include_in_schema=False)
+    async def serve_root():
+        index_file = os.path.join(_static_dir, "index.html")
+        if os.path.isfile(index_file):
+            return FileResponse(index_file)
+        return {"status": "ok", "app": settings.app_name, "docs": "/docs"}
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa_paths(full_path: str):
+        # Exclude API endpoints and swagger docs
+        if (
+            full_path.startswith("api")
+            or full_path.startswith("docs")
+            or full_path.startswith("openapi.json")
+            or full_path == "health"
+        ):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Not Found")
+
+        file_path = os.path.join(_static_dir, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+
+        index_file = os.path.join(_static_dir, "index.html")
+        if os.path.isfile(index_file):
+            return FileResponse(index_file)
+
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Resource Not Found")
+else:
+    @app.get("/", tags=["System"])
+    async def root():
+        return {
+            "message": "Welcome to SupplyMind REST API",
+            "docs": "/docs",
+            "version": settings.app_version,
+            "status": "online",
+        }

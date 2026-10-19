@@ -1,3 +1,13 @@
+---
+title: Supplymind
+emoji: 🧠
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 🧠 SupplyMind ⛓️
 
 **Predictive Supply Chain Disruption Intelligence with Autonomous Mitigation Orchestration**

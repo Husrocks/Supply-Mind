@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { SkuExplainability, SupplierExplainability } from '../types';
 
 const apiURL = import.meta.env.VITE_API_URL || '';
 
@@ -207,5 +208,77 @@ export const getSkuRiskContext = async (skuId: string, supplierId: string, curre
   alternativeSuppliers.forEach(alt => params.append('alternative_supplier_ids', alt));
   
   const response = await apiClient.get(`/predictions/risk-context/${skuId}?${params.toString()}`);
+  return response.data;
+};
+
+// ── Interactive Features Endpoints ──────────────────────────────────────────
+
+export const simulateWhatIf = async (data: {
+  sku_id: string;
+  supplier_id?: string;
+  demand_change_pct: number;
+  lead_time_increase_days: number;
+  inventory_override?: number | null;
+  supplier_disruption_pct: number;
+}) => {
+  const response = await apiClient.post('/simulation/what-if', data);
+  return response.data;
+};
+
+export const simulateSupplierDisruption = async (data: {
+  supplier_id: string;
+  disruption_type?: 'SHUTDOWN' | 'DELAY' | 'CAPACITY_CUT';
+  duration_days: number;
+  severity_pct: number;
+}) => {
+  const response = await apiClient.post('/simulation/supplier-disruption', data);
+  return response.data;
+};
+
+export const resetDemoState = async () => {
+  const response = await apiClient.post('/simulation/reset');
+  return response.data;
+};
+
+export const getReorderRecommendations = async (params?: {
+  status?: string;
+  criticality?: string;
+  supplier_id?: string;
+  search?: string;
+}) => {
+  const response = await apiClient.get('/reorder/recommendations', { params });
+  return response.data;
+};
+
+export const updateReorderStatus = async (
+  skuId: string,
+  status: 'PENDING' | 'REVIEWED' | 'DISMISSED',
+  notes?: string
+) => {
+  const response = await apiClient.post(`/reorder/${skuId}/status`, { status, notes });
+  return response.data;
+};
+
+export const getReorderExportUrl = () => {
+  return `${apiClient.defaults.baseURL}/reorder/export`;
+};
+
+export const getSupplierExplainability = async (supplierId: string): Promise<SupplierExplainability> => {
+  const response = await apiClient.get<SupplierExplainability>(`/explainability/supplier/${supplierId}`);
+  return response.data;
+};
+
+export const getSkuExplainability = async (skuId: string): Promise<SkuExplainability> => {
+  const response = await apiClient.get<SkuExplainability>(`/explainability/sku/${skuId}`);
+  return response.data;
+};
+
+export const askAssistant = async (question: string, history: Array<{ role: 'user' | 'assistant'; content: string }> = []) => {
+  const response = await apiClient.post('/assistant/chat', { question, history });
+  return response.data;
+};
+
+export const getAssistantSuggestions = async () => {
+  const response = await apiClient.get('/assistant/suggestions');
   return response.data;
 };

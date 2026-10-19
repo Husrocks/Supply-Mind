@@ -12,6 +12,10 @@ export const queryKeys = {
   settings: ['settings'] as const,
   supplierDetail: (id: string) => ['supplier-detail', id] as const,
   skuDetail: (id: string) => ['sku-detail', id] as const,
+  reorders: (params?: any) => ['reorders', params] as const,
+  supplierExplainability: (id: string) => ['explainability', 'supplier', id] as const,
+  skuExplainability: (id: string) => ['explainability', 'sku', id] as const,
+  assistantSuggestions: ['assistant-suggestions'] as const,
 };
 
 export interface RiskContextData {

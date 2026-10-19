@@ -24,6 +24,15 @@ import {
   deleteAction,
   getRetrainStatus,
   getSkuRiskContext,
+  simulateWhatIf,
+  simulateSupplierDisruption,
+  resetDemoState,
+  getReorderRecommendations,
+  updateReorderStatus,
+  getSupplierExplainability,
+  getSkuExplainability,
+  askAssistant,
+  getAssistantSuggestions,
 } from '../api/client';
 
 const POLL_MS = 240_000; // 4-minute polling interval in dev to prevent CPU / thread starvation
@@ -246,5 +255,86 @@ export function useSkuRiskContextMutation() {
   return useMutation({
     mutationFn: ({ skuId, supplierId, currentInventory, alternativeSuppliers }: { skuId: string, supplierId: string, currentInventory?: number, alternativeSuppliers?: string[] }) => 
       getSkuRiskContext(skuId, supplierId, currentInventory, alternativeSuppliers)
+  });
+}
+
+// ── Interactive Features React Query Hooks ──────────────────────────────────
+
+export function useWhatIfMutation() {
+  return useMutation({
+    mutationFn: (params: Parameters<typeof simulateWhatIf>[0]) => simulateWhatIf(params),
+  });
+}
+
+export function useSupplierDisruptionMutation() {
+  return useMutation({
+    mutationFn: (params: Parameters<typeof simulateSupplierDisruption>[0]) => simulateSupplierDisruption(params),
+  });
+}
+
+export function useResetDemoMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: resetDemoState,
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+    },
+  });
+}
+
+export function useReorderRecommendations(params?: {
+  status?: string;
+  criticality?: string;
+  supplier_id?: string;
+  search?: string;
+}) {
+  return useQuery({
+    queryKey: queryKeys.reorders(params),
+    queryFn: () => getReorderRecommendations(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useUpdateReorderStatusMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ skuId, status, notes }: { skuId: string; status: 'PENDING' | 'REVIEWED' | 'DISMISSED'; notes?: string }) =>
+      updateReorderStatus(skuId, status, notes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reorders'] });
+    },
+  });
+}
+
+export function useSupplierExplainability(supplierId: string, enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.supplierExplainability(supplierId),
+    queryFn: () => getSupplierExplainability(supplierId),
+    enabled: Boolean(supplierId) && enabled,
+    staleTime: 300_000,
+  });
+}
+
+export function useSkuExplainability(skuId: string, enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.skuExplainability(skuId),
+    queryFn: () => getSkuExplainability(skuId),
+    enabled: Boolean(skuId) && enabled,
+    staleTime: 300_000,
+  });
+}
+
+export function useAssistantChatMutation() {
+  return useMutation({
+    mutationFn: ({ question, history }: { question: string; history?: Array<{ role: 'user' | 'assistant'; content: string }> }) =>
+      askAssistant(question, history),
+  });
+}
+
+export function useAssistantSuggestions() {
+  return useQuery({
+    queryKey: queryKeys.assistantSuggestions,
+    queryFn: getAssistantSuggestions,
+    staleTime: 600_000,
   });
 }

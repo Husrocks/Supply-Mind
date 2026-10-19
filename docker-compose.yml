@@ -34,7 +34,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "7860:7860"
     environment:
       - DATABASE_URL=postgresql+asyncpg://supplymind_user:password@postgres:5432/supplymind
       - POSTGRES_HOST=postgres
@@ -47,17 +47,17 @@ services:
       redis:
         condition: service_healthy
 
-  # Frontend development server (optional, usually built statically in prod)
+  # Frontend development server (optional live dev)
   frontend:
-    image: node:18-alpine
-    working_dir: /app/frontend
+    image: node:20-alpine
+    working_dir: /app/frontend-v2
     volumes:
-      - ./frontend:/app/frontend
+      - ./frontend-v2:/app/frontend-v2
     command: npm run dev -- --host 0.0.0.0
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://localhost:7860
     depends_on:
       - backend
 

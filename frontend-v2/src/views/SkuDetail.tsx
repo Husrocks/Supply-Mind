@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSkuDetail } from '../hooks/useDashboardQueries';
+import { useSkuDetail, useSkuExplainability } from '../hooks/useDashboardQueries';
 import { 
   ArrowLeft, AlertCircle, Package, Activity, 
-  TrendingUp, Truck, ShieldAlert, ArrowRight 
+  TrendingUp, Truck, ShieldAlert, ArrowRight, Sparkles
 } from 'lucide-react';
 import { 
   ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, 
@@ -22,6 +22,7 @@ export function SkuDetail() {
   const navigate = useNavigate();
   const reduced = usePrefersReducedMotion();
   const { data, isLoading, isError } = useSkuDetail(sku_id ?? '');
+  const { data: explainability } = useSkuExplainability(sku_id ?? '');
 
   if (isLoading) {
     return <ViewSkeleton />;
@@ -39,7 +40,8 @@ export function SkuDetail() {
     );
   }
 
-  const safetyBuffer = Math.min(100, (data.days_to_stockout / 28) * 100);
+  const daysToStockout = data.days_to_stockout ?? 0;
+  const safetyBuffer = Math.min(100, Math.max(0, (daysToStockout / 28) * 100));
 
   return (
     <div className="h-full overflow-y-auto p-5 lg:p-6">
@@ -82,7 +84,7 @@ export function SkuDetail() {
             <div>
               <p className="text-[10px] text-muted uppercase tracking-wider">Days to Stockout</p>
               <h3 className="text-3xl font-mono tabular-nums font-semibold mt-1 text-ink">
-                {data.days_to_stockout} days
+                {daysToStockout} days
               </h3>
             </div>
           </GlassCard>
@@ -91,7 +93,7 @@ export function SkuDetail() {
             <div>
               <p className="text-[10px] text-muted uppercase tracking-wider">Current Inventory</p>
               <h3 className="text-3xl font-mono tabular-nums font-semibold mt-1 text-ink">
-                {data.current_inventory.toLocaleString()} units
+                {(data.current_inventory ?? 0).toLocaleString()} units
               </h3>
             </div>
             <Package size={24} className="text-accent-cyan opacity-80" />
@@ -111,7 +113,7 @@ export function SkuDetail() {
             <div>
               <p className="text-[10px] text-muted tracking-wider uppercase">Uncertainty Spread</p>
               <h3 className="text-3xl font-mono tabular-nums font-semibold mt-1 text-ink">
-                {data.uncertainty_spread} units
+                {data.uncertainty_spread ?? '—'} units
               </h3>
             </div>
             <Activity size={20} className="text-risk-high opacity-85" />
@@ -143,6 +145,67 @@ export function SkuDetail() {
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-indigo-500 rounded-full" /> P50 Median Forecast</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-indigo-500/25 rounded" /> P05–P95 Confidence Band</span>
             </div>
+
+            {/* Explainable ML Intelligence */}
+            {explainability && (() => {
+              const p05 = explainability.p05_demand ?? explainability.p05_total_demand;
+              const p95 = explainability.p95_demand ?? explainability.p95_total_demand;
+              const relSpread = explainability.relative_uncertainty_pct != null
+                ? explainability.relative_uncertainty_pct
+                : (explainability.uncertainty_ratio != null ? explainability.uncertainty_ratio * 100 : 0);
+              const summary = explainability.plain_english_summary || explainability.uncertainty_interpretation || 'TFT model uncertainty metrics calculated.';
+              const methodology = explainability.methodology_note || 'Temporal Fusion Transformer (TFT) quantile regression with temporal cross-attention.';
+              const confidenceTier = explainability.model_confidence_tier || (
+                relSpread < 35 ? 'High Confidence' :
+                relSpread < 60 ? 'Moderate Confidence' :
+                'Elevated Uncertainty'
+              );
+              const timestamp = explainability.forecast_timestamp || explainability.prediction_timestamp;
+
+              return (
+                <div className="mt-5 pt-4 border-t border-hairline/80 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-2 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Sparkles size={14} className="text-accent-indigo" />
+                      <span className="text-xs font-semibold text-ink uppercase tracking-wider">TFT Model Explanation</span>
+                      <span className={clsx(
+                        'text-[10px] font-mono px-2 py-0.5 rounded-full border',
+                        confidenceTier === 'High Confidence' ? 'bg-emerald-900/20 text-emerald-400 border-emerald-700/30' :
+                        confidenceTier === 'Moderate Confidence' ? 'bg-amber-900/20 text-amber-400 border-amber-700/30' :
+                        'bg-rose-900/20 text-rose-400 border-rose-700/30'
+                      )}>
+                        {confidenceTier}
+                      </span>
+                    </div>
+                    <p className="text-xs text-body leading-relaxed">
+                      {summary}
+                    </p>
+                    <p className="text-[10px] text-muted italic">
+                      Methodology: {methodology}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-slate-900/50 rounded-xl border border-hairline space-y-2 flex flex-col justify-center">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-muted">Relative Spread</span>
+                      <span className="font-mono text-ink font-semibold">
+                        {Number(relSpread ?? 0).toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-muted">P05 (Conservative)</span>
+                      <span className="font-mono text-ink">{p05 != null ? `${Number(p05).toFixed(0)} u` : '—'}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-muted">P95 (Surge Stress)</span>
+                      <span className="font-mono text-ink">{p95 != null ? `${Number(p95).toFixed(0)} u` : '—'}</span>
+                    </div>
+                    <div className="pt-1 border-t border-hairline/50 text-[9px] text-muted text-right font-mono">
+                      Model run: {timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent'}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </GlassCard>
         </StaggerItem>
 
@@ -189,8 +252,8 @@ export function SkuDetail() {
                         </div>
                       </div>
                       <div className="ml-3 shrink-0 flex items-center gap-1.5">
-                        <span className="text-[10px] font-semibold font-mono" style={{ color: riskScoreColor(dep.risk_score) }}>
-                          {(dep.risk_score * 100).toFixed(0)}% Risk
+                        <span className="text-[10px] font-semibold font-mono" style={{ color: riskScoreColor(dep.risk_score ?? 0) }}>
+                          {((dep.risk_score ?? 0) * 100).toFixed(0)}% Risk
                         </span>
                         <ArrowRight size={12} className="text-muted" />
                       </div>

@@ -77,6 +77,11 @@ frontend/node_modules/
 frontend/dist/
 frontend/build/
 frontend/.next/
+frontend-v2/node_modules/
+frontend-v2/dist/
+
+# Data archives
+data/*.zip
 
 # Docker
 .docker/
@@ -91,6 +96,7 @@ frontend/.next/
 *.db-shm
 *.db-wal
 *.sqlite
+!supplymind.db
 
 # Lightning logs
 lightning_logs/

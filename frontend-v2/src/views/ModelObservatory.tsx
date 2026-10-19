@@ -120,7 +120,7 @@ export function ModelObservatory() {
           <GlassCard accent="indigo">
             <div className="flex justify-between mb-3">
               <h2 className="text-sm font-semibold flex items-center gap-2"><TrendingUp size={14} /> TFT</h2>
-              <span className="font-mono tabular-nums text-ink">{data.tft.val_wrmsse.toFixed(4)}</span>
+              <span className="font-mono tabular-nums text-ink">{data.tft?.val_wrmsse != null ? data.tft.val_wrmsse.toFixed(4) : '—'}</span>
             </div>
             <p className="text-[10px] text-muted mb-2">WRMSSE (lower = better)</p>
             {inView && (
@@ -141,7 +141,7 @@ export function ModelObservatory() {
           <GlassCard accent="emerald">
             <div className="flex justify-between mb-3">
               <h2 className="text-sm font-semibold flex items-center gap-2"><ShieldCheck size={14} /> LightGBM</h2>
-              <span className="font-mono tabular-nums text-ink">{data.lightgbm.pr_auc.toFixed(3)}</span>
+              <span className="font-mono tabular-nums text-ink">{data.lightgbm?.pr_auc != null ? data.lightgbm.pr_auc.toFixed(3) : '—'}</span>
             </div>
             <p className="text-[10px] text-muted mb-2">PR-AUC (calibration curve)</p>
             {inView && (
@@ -163,7 +163,7 @@ export function ModelObservatory() {
           <GlassCard accent="rose">
             <div className="flex justify-between mb-3">
               <h2 className="text-sm font-semibold flex items-center gap-2"><AlertTriangle size={14} /> LSTM-AE</h2>
-              <span className="font-mono tabular-nums text-ink">{data.lstm_ae.current_threshold.toFixed(3)}</span>
+              <span className="font-mono tabular-nums text-ink">{data.lstm_ae?.current_threshold != null ? data.lstm_ae.current_threshold.toFixed(3) : '—'}</span>
             </div>
             <p className="text-[10px] text-muted mb-2">Reconstruction error threshold</p>
             {inView && (

@@ -51,8 +51,8 @@ export const SupplierTable = memo(function SupplierTable({
               <div className="grid grid-cols-3 gap-2 items-center text-xs mt-3">
                 <div>
                   <div className="text-[10px] text-muted uppercase">Risk</div>
-                  <div className="font-mono font-bold mt-0.5" style={{ color: riskScoreColor(s.risk_score) }}>
-                    {(s.risk_score * 100).toFixed(0)}%
+                  <div className="font-mono font-bold mt-0.5" style={{ color: riskScoreColor(s.risk_score ?? 0) }}>
+                    {((s.risk_score ?? 0) * 100).toFixed(0)}%
                   </div>
                 </div>
                 <div>
@@ -107,8 +107,8 @@ export const SupplierTable = memo(function SupplierTable({
                   <div className="col-span-5 text-ink font-medium truncate pr-4" title={s.supplier_name}>
                     {s.supplier_name}
                   </div>
-                  <div className="col-span-2 font-mono tabular-nums" style={{ color: riskScoreColor(s.risk_score) }}>
-                    {(s.risk_score * 100).toFixed(0)}%
+                  <div className="col-span-2 font-mono tabular-nums" style={{ color: riskScoreColor(s.risk_score ?? 0) }}>
+                    {((s.risk_score ?? 0) * 100).toFixed(0)}%
                   </div>
                   <div className="col-span-2 text-body capitalize">{s.risk_tier}</div>
                   <div className="col-span-3">

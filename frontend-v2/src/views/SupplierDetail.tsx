@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSupplierDetail } from '../hooks/useDashboardQueries';
+import { useSupplierDetail, useSupplierExplainability } from '../hooks/useDashboardQueries';
 import { apiClient } from '../api/client';
 import { 
   ArrowLeft, Loader2, AlertCircle, CheckCircle2, PlayCircle, BarChart3, 
-  MapPin, Landmark, TrendingUp, ShieldAlert 
+  MapPin, Landmark, TrendingUp, ShieldAlert, AlertOctagon
 } from 'lucide-react';
 import { 
   ResponsiveContainer, BarChart, Bar, Cell, XAxis, YAxis, Tooltip as RechartsTooltip, 
@@ -65,11 +65,15 @@ export function SupplierDetail() {
     score: score * 100
   }));
 
+  const { data: explainability } = useSupplierExplainability(supplier_id ?? '');
+
   // Process SHAP drivers chart data
-  const shapData = (data.shap_drivers ?? []).map((d: any) => ({
-    name: d.feature.replace(/_/g, ' '),
-    impact: Math.abs(d.impact) * 100,
-    direction: d.direction
+  const rawDrivers = explainability?.shap_drivers ?? data.shap_drivers ?? [];
+  const shapData = rawDrivers.map((d: any) => ({
+    name: (d.display_name || d.feature || '').replace(/_/g, ' '),
+    impact: Math.abs(d.shap_impact || d.impact || 0.15) * 100,
+    direction: d.direction,
+    explanation: d.human_explanation,
   }));
 
   const otd = data.on_time_delivery_pct;
@@ -125,8 +129,8 @@ export function SupplierDetail() {
           <GlassCard accent={data.risk_score >= 0.75 ? 'rose' : data.risk_score >= 0.4 ? 'amber' : 'emerald'} className="flex justify-between items-center py-5">
             <div>
               <p className="text-[10px] text-muted uppercase tracking-wider">Disruption Risk</p>
-              <h3 className="text-3xl font-mono tabular-nums font-semibold mt-1" style={{ color: riskScoreColor(data.risk_score) }}>
-                {(data.risk_score * 100).toFixed(1)}%
+              <h3 className="text-3xl font-mono tabular-nums font-semibold mt-1" style={{ color: riskScoreColor(data.risk_score ?? 0) }}>
+                {((data.risk_score ?? 0) * 100).toFixed(1)}%
               </h3>
             </div>
             <span className={clsx(
@@ -181,15 +185,26 @@ export function SupplierDetail() {
           </GlassCard>
 
           <GlassCard accent="cyan">
-            <h3 className="text-sm font-semibold text-ink uppercase tracking-wider mb-4 border-b border-hairline pb-2 flex items-center gap-2">
-              <ShieldAlert size={16} className="text-accent-cyan" /> ML Feature Attribution (SHAP)
-            </h3>
-            <div className="h-[260px]">
+            <div className="flex items-center justify-between mb-3 border-b border-hairline pb-2">
+              <h3 className="text-sm font-semibold text-ink uppercase tracking-wider flex items-center gap-2">
+                <ShieldAlert size={16} className="text-accent-cyan" /> ML Feature Attribution (SHAP)
+              </h3>
+              <button
+                onClick={() => navigate('/disruption')}
+                className="text-[11px] text-accent-indigo hover:text-accent-indigo/80 font-medium flex items-center gap-1"
+                title="Simulate disruption on this vendor"
+              >
+                <AlertOctagon size={12} />
+                Simulate Disruption
+              </button>
+            </div>
+
+            <div className="h-[220px]">
               {shapData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={shapData} layout="vertical" margin={{ top: 10, right: 10, left: 20, bottom: 5 }}>
+                  <BarChart data={shapData} layout="vertical" margin={{ top: 5, right: 10, left: 20, bottom: 5 }}>
                     <XAxis type="number" tick={{ fill: '#94a3b8', fontSize: 9 }} unit="%" />
-                    <YAxis dataKey="name" type="category" tick={{ fill: '#94a3b8', fontSize: 9 }} width={100} axisLine={false} tickLine={false} />
+                    <YAxis dataKey="name" type="category" tick={{ fill: '#94a3b8', fontSize: 9 }} width={110} axisLine={false} tickLine={false} />
                     <RechartsTooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 12 }} />
                     <Bar dataKey="impact" radius={[0, 4, 4, 0]} barSize={10} isAnimationActive={!reduced}>
                       {shapData.map((entry: any, index: number) => (
@@ -207,6 +222,39 @@ export function SupplierDetail() {
                 </div>
               )}
             </div>
+
+            {/* Explainable Insights & Anomaly Evidence */}
+            {explainability && (
+              <div className="mt-3 space-y-2 pt-3 border-t border-hairline">
+                <div className="p-2.5 rounded-lg bg-surface-elevated/70 border border-hairline">
+                  <span className="text-[10px] uppercase font-bold text-accent-cyan tracking-wider block mb-0.5">
+                    Model Reasoning Summary
+                  </span>
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                    {explainability.plain_english_summary}
+                  </p>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-surface-elevated/70 border border-hairline flex items-start gap-2">
+                  <div className={clsx(
+                    'w-2 h-2 rounded-full mt-1 shrink-0',
+                    explainability.is_anomaly ? 'bg-rose-500' : 'bg-emerald-400'
+                  )} />
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-muted tracking-wider block">
+                      LSTM-AE Temporal Anomaly Verification
+                    </span>
+                    <p className="text-[11px] text-slate-300 leading-relaxed mt-0.5">
+                      {explainability.anomaly_explanation}
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-[9px] text-muted leading-tight pt-1">
+                  {explainability.attribution_disclaimer}
+                </p>
+              </div>
+            )}
           </GlassCard>
         </StaggerItem>
 
@@ -286,12 +334,12 @@ export function SupplierDetail() {
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted">On-Time Delivery Rate</span>
-                      <span className="font-mono tabular-nums text-ink font-semibold">{(data.onboarding.probation_on_time_rate * 100).toFixed(1)}%</span>
+                      <span className="font-mono tabular-nums text-ink font-semibold">{((data.onboarding.probation_on_time_rate ?? 0) * 100).toFixed(1)}%</span>
                     </div>
                     <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
                       <div 
-                        className={clsx('h-full', data.onboarding.probation_on_time_rate >= 0.85 ? 'bg-risk-low' : 'bg-risk-high')}
-                        style={{ width: `${data.onboarding.probation_on_time_rate * 100}%` }}
+                        className={clsx('h-full', (data.onboarding.probation_on_time_rate ?? 0) >= 0.85 ? 'bg-risk-low' : 'bg-risk-high')}
+                        style={{ width: `${(data.onboarding.probation_on_time_rate ?? 0) * 100}%` }}
                       />
                     </div>
                     <div className="text-[10px] text-muted">Auto-approve threshold: &gt;= 85%</div>
@@ -300,12 +348,12 @@ export function SupplierDetail() {
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted">PO Rejection Rate</span>
-                      <span className="font-mono tabular-nums text-ink font-semibold">{(data.onboarding.probation_rejection_rate * 100).toFixed(1)}%</span>
+                      <span className="font-mono tabular-nums text-ink font-semibold">{((data.onboarding.probation_rejection_rate ?? 0) * 100).toFixed(1)}%</span>
                     </div>
                     <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
                       <div 
-                        className={clsx('h-full', data.onboarding.probation_rejection_rate < 0.03 ? 'bg-risk-low' : 'bg-risk-high')}
-                        style={{ width: `${data.onboarding.probation_rejection_rate * 100}%` }}
+                        className={clsx('h-full', (data.onboarding.probation_rejection_rate ?? 0) < 0.03 ? 'bg-risk-low' : 'bg-risk-high')}
+                        style={{ width: `${(data.onboarding.probation_rejection_rate ?? 0) * 100}%` }}
                       />
                     </div>
                     <div className="text-[10px] text-muted">Auto-reject threshold: &gt; 8%</div>

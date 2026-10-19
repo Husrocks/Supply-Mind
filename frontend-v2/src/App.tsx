@@ -22,6 +22,10 @@ const Settings = lazy(() => import('./views/Settings'));
 const SupplierDetail = lazy(() => import('./views/SupplierDetail'));
 const SkuDetail = lazy(() => import('./views/SkuDetail'));
 const Reports = lazy(() => import('./views/Reports'));
+const WhatIfSimulator = lazy(() => import('./views/WhatIfSimulator'));
+const SmartReorder = lazy(() => import('./views/SmartReorder'));
+const SupplierDisruption = lazy(() => import('./views/SupplierDisruption'));
+const AskSupplyMind = lazy(() => import('./views/AskSupplyMind'));
 const NotFound = lazy(() => import('./views/NotFound'));
 
 const queryClient = new QueryClient({
@@ -77,6 +81,10 @@ function App() {
               <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                 <Route element={<AnimatedOutlet />}>
                   <Route path="/dashboard" element={<Lazy><NetworkDashboard /></Lazy>} />
+                  <Route path="/simulator" element={<Lazy><WhatIfSimulator /></Lazy>} />
+                  <Route path="/reorder" element={<Lazy><SmartReorder /></Lazy>} />
+                  <Route path="/disruption" element={<Lazy><SupplierDisruption /></Lazy>} />
+                  <Route path="/assistant" element={<Lazy><AskSupplyMind /></Lazy>} />
                   <Route path="/override" element={<Lazy><OverrideConsole /></Lazy>} />
                   <Route path="/onboarding" element={<Lazy><SupplierOnboarding /></Lazy>} />
                   <Route path="audit" element={<Lazy><AuditLog /></Lazy>} />

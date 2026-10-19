@@ -245,3 +245,17 @@ class InventoryLevel(Base):
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
     )
 
+
+class ReorderRecommendationStatus(Base):
+    """Tracks human review decisions (Pending, Reviewed, Dismissed) on smart reorders."""
+    __tablename__ = "reorder_recommendation_statuses"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    sku_id: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="PENDING", index=True) # PENDING | REVIEWED | DISMISSED
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    updated_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now
+    )
+

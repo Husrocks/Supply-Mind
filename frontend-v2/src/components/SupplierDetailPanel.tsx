@@ -56,8 +56,8 @@ export function SupplierDetailPanel({ supplier, onClose }: SupplierDetailPanelPr
 
       <div className="mb-8 p-5 bg-surface-soft rounded-xl border border-hairline">
         <div className="text-sm text-muted mb-1">Risk Score</div>
-        <div className={`font-mono text-3xl ${getRiskColor(supplier.risk_score)} flex items-baseline gap-2`}>
-          {(supplier.risk_score * 100).toFixed(1)}%
+        <div className={`font-mono text-3xl ${getRiskColor(supplier.risk_score ?? 0)} flex items-baseline gap-2`}>
+          {((supplier.risk_score ?? 0) * 100).toFixed(1)}%
           <span className="text-sm font-sans font-medium text-muted uppercase">{supplier.risk_level}</span>
         </div>
       </div>
@@ -79,7 +79,7 @@ export function SupplierDetailPanel({ supplier, onClose }: SupplierDetailPanelPr
                   </span>
                 </div>
                 <div className="text-sm font-mono text-muted">
-                  {(driver.impact * 100).toFixed(1)}%
+                  {((driver.impact ?? 0) * 100).toFixed(1)}%
                 </div>
               </li>
             ))}

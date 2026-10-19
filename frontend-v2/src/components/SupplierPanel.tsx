@@ -172,7 +172,7 @@ export function SupplierPanel({ supplier, onClose, isOpen }: SupplierPanelProps)
               <div>
                 <span className="text-xs text-muted font-medium">Risk Score</span>
                 <div className="font-mono text-3xl text-ink mt-1">
-                  {(supplier.risk_score * 100).toFixed(1)}%
+                  {((supplier.risk_score ?? 0) * 100).toFixed(1)}%
                 </div>
               </div>
               <span className={`text-sm font-semibold ${risk.color}`}>
@@ -259,7 +259,7 @@ export function SupplierPanel({ supplier, onClose, isOpen }: SupplierPanelProps)
                       <div className="flex justify-between items-center text-xs text-ink font-medium mb-1.5">
                         <span>{d.name}</span>
                         <span className={`font-mono ${increases ? 'text-semantic-down' : 'text-semantic-up'}`}>
-                          {(d.impact * 100).toFixed(1)}%
+                          {((d.impact ?? 0) * 100).toFixed(1)}%
                         </span>
                       </div>
                       <div className="w-full h-1.5 bg-surface-strong rounded-pill overflow-hidden">

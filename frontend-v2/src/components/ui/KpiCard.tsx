@@ -33,11 +33,17 @@ export const KpiCard = memo(function KpiCard({
   return (
     <div 
       className={clsx(
-        'glass-card min-w-0 transition-transform duration-200', 
+        'glass-card min-w-0 transition-transform duration-150', 
         `glass-card--${accent}`,
-        onClick && 'cursor-pointer hover:-translate-y-1 hover:shadow-lg'
+        onClick && 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-indigo focus-visible:ring-offset-2 active:scale-[0.99] touch-action-manipulation'
       )}
       onClick={onClick}
+      onKeyDown={onClick ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      } : undefined}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
     >
