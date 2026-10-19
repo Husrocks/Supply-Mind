@@ -36,6 +36,8 @@ from api.main import app as fastapi_app
 # 3. Mount Gradio interface
 import gradio as gr
 
+gr.close_all()
+
 with gr.Blocks(title="SupplyMind AI Engine") as demo:
     gr.Markdown("# 🧠 SupplyMind — Supply Chain Risk & Decision Orchestration Engine")
     gr.Markdown(
@@ -46,17 +48,12 @@ with gr.Blocks(title="SupplyMind AI Engine") as demo:
         - 📖 **Interactive API Documentation (Swagger):** [/docs](/docs)
         - 🩺 **Health Check Endpoint:** [/health](/health)
         - ⚡ **API Base Path:** `/api/v1/`
-
-        ---
-        **Connected Frontend:**
-        The React 19 Frontend Dashboard communicates with this Space via REST API endpoints.
         """
     )
 
-# Mount Gradio app onto FastAPI root
-app = gr.mount_gradio_app(fastapi_app, demo, path="/")
+# Mount Gradio app onto /gradio so root API / docs remain intact without port conflict
+app = gr.mount_gradio_app(fastapi_app, demo, path="/gradio")
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 7860))
-    uvicorn.run("app:app", host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=7860)
